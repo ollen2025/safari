@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="da">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Lydtest</title>
+    <style>
+      body { font-family: sans-serif; max-width: 860px; margin: 2rem auto; padding: 0 1rem; }
+      .row { display: flex; align-items: center; gap: 1rem; margin: 0.3rem 0; }
+      .default { font-weight: bold; }
+    </style>
+  </head>
+  <body>
+    <h1>Lydtest 🔊</h1>
+    <p>
+      Kandidater til dyrelydene (kun på din computer, kommer ikke på GitHub).
+      <b>Fed</b> = den, spillet bruger nu. Spillet afspiller højst 4 sekunder.
+    </p>
+    <div id="list"></div>
+    <script type="module">
+      const list = document.getElementById('list');
+      try {
+        const data = await (await fetch('/assets/sounds/candidates/candidates.json')).json();
+        for (const [animal, sounds] of Object.entries(data)) {
+          const heading = document.createElement('h2');
+          heading.textContent = animal;
+          list.append(heading);
+          sounds.forEach((s, i) => {
+            const row = document.createElement('div');
+            row.className = i === 0 ? 'row default' : 'row';
+            const audio = document.createElement('audio');
+            audio.controls = true;
+            audio.preload = 'none';
+            audio.src = '/' + s.file;
+            const label = document.createElement('span');
+            label.textContent = `${i + 1}. ${s.title} (${s.duration}s, id ${s.id})`;
+            row.append(audio, label);
+            list.append(row);
+          });
+        }
+      } catch {
+        list.textContent = 'Fandt ingen kandidater i public/assets/sounds/candidates/.';
+      }
+    </script>
+  </body>
+</html>

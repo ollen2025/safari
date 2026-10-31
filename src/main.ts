@@ -1,5 +1,9 @@
 import Phaser from 'phaser';
-import { SafariScene } from './scenes/SafariScene';
+import { BootScene } from './scenes/BootScene';
+import { DriveScene } from './scenes/DriveScene';
+import { IceCreamScene } from './scenes/IceCreamScene';
+import { LookoutScene } from './scenes/LookoutScene';
+import { LookoutUIScene } from './scenes/LookoutUIScene';
 
 new Phaser.Game({
   type: Phaser.AUTO,
@@ -11,5 +15,6 @@ new Phaser.Game({
     mode: Phaser.Scale.FIT,
     autoCenter: Phaser.Scale.CENTER_BOTH,
   },
-  scene: [SafariScene],
+  // Kun den første scene starter automatisk. Rækkefølgen bestemmer også, hvilken scene der tegnes øverst.
+  scene: [BootScene, DriveScene, LookoutScene, LookoutUIScene, IceCreamScene],
 });

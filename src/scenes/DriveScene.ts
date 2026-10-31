@@ -1,0 +1,265 @@
+import Phaser from 'phaser';
+import { Abdul } from '../abdul';
+import { addAnimalImage } from '../animalArt';
+import { randomAnimal, type AnimalKey } from '../animals';
+import { drawAcacia, drawBush, drawHill, drawKiosk, drawWaterhole } from '../scenery';
+import { CollectionBar, makeButton } from '../ui';
+
+const CRUISE_SPEED = 200; // px/s for det nærmeste lag
+const ACCELERATION = 120;
+const BRAKING = 170;
+const ANIMAL_PARALLAX = 0.8;
+const HORIZON = 300;
+const WINDOW = { left: 40, right: 1240, top: 80, bottom: 510 };
+const HOME_DRIVE_SECONDS = 4; // så længe kører man, før iskiosken dukker op
+
+type DriveState = 'intro' | 'driving' | 'homeward' | 'stopping' | 'stopped';
+
+// Et lag af landskabet, der kører forbi med sin egen fart (parallax)
+interface ScrollLayer {
+  items: Phaser.GameObjects.Graphics[];
+  factor: number;
+  span: number;
+}
+
+interface PassingAnimal {
+  key: AnimalKey;
+  sprite: Phaser.GameObjects.Image;
+}
+
+// Spilleren sidder i jeepen og kigger ud ad sidevinduet
+export class DriveScene extends Phaser.Scene {
+  private state: DriveState = 'intro';
+  private speed = 0;
+  private layers: ScrollLayer[] = [];
+  private animals: PassingAnimal[] = [];
+  private nextSpawn = 1.5;
+  private seenWhenStopped: AnimalKey[] = [];
+  private homewardTime = 0;
+  private arrivingHome = false;
+  private kiosk?: Phaser.GameObjects.Container;
+
+  private outside!: Phaser.GameObjects.Container;
+  private animalLayer!: Phaser.GameObjects.Container;
+  private abdul!: Abdul;
+  private stopButton!: Phaser.GameObjects.Container;
+  private standButton!: Phaser.GameObjects.Container;
+  private iceCreamButton!: Phaser.GameObjects.Container;
+  private driveButton!: Phaser.GameObjects.Container;
+
+  constructor() {
+    super('Drive');
+  }
+
+  create() {
+    this.outside = this.add.container(0, 0);
+    this.buildLandscape();
+    this.buildInterior();
+
+    this.abdul = new Abdul(this, 150, 620, 0.75);
+    new CollectionBar(this, 640, 40);
+
+    this.stopButton = makeButton(this, 1110, 615, '✋', 0xd62828, () => this.brake()).setVisible(false);
+    this.standButton = makeButton(this, 690, 615, '🧍', 0x2a9d8f, () => this.standUp()).setVisible(false);
+    this.iceCreamButton = makeButton(this, 890, 615, '🍦', 0xf4a6c1, () => this.driveHome()).setVisible(false);
+    this.driveButton = makeButton(this, 1110, 615, '🚙', 0x52b788, () => this.drive()).setVisible(false);
+
+    this.events.on('wake', (_sys: Phaser.Scenes.Systems, data?: { from?: string }) => {
+      if (data?.from === 'icecream') {
+        this.cameras.main.fadeIn(400);
+        this.abdul.say('Så tager vi på safari igen!');
+        this.drive(false);
+      } else {
+        this.abdul.say('Skal vi køre videre?');
+      }
+    });
+    this.showIntro();
+  }
+
+  update(time: number, delta: number) {
+    const dt = delta / 1000;
+
+    if (this.state === 'driving' || this.state === 'homeward') {
+      this.speed = Math.min(CRUISE_SPEED, this.speed + ACCELERATION * dt);
+    } else if (this.state === 'stopping') {
+      this.speed = Math.max(0, this.speed - BRAKING * dt);
+      if (this.speed === 0) this.onStopped();
+    }
+
+    for (const layer of this.layers) {
+      for (const item of layer.items) {
+        item.x -= this.speed * layer.factor * dt;
+        if (item.x < -400) item.x += layer.span;
+      }
+    }
+
+    for (const animal of this.animals) animal.sprite.x -= this.speed * ANIMAL_PARALLAX * dt;
+    this.animals = this.animals.filter((animal) => {
+      if (animal.sprite.x > -200) return true;
+      animal.sprite.destroy();
+      return false;
+    });
+
+    if (this.kiosk) {
+      this.kiosk.x -= this.speed * ANIMAL_PARALLAX * dt;
+      if (this.kiosk.x < -300) {
+        this.kiosk.destroy();
+        this.kiosk = undefined;
+      }
+    }
+
+    if (this.state === 'driving') {
+      this.nextSpawn -= dt;
+      if (this.nextSpawn <= 0) {
+        this.spawnAnimal();
+        this.nextSpawn = Phaser.Math.FloatBetween(3, 6);
+      }
+    }
+
+    if (this.state === 'homeward') {
+      this.homewardTime += dt;
+      if (!this.kiosk && this.homewardTime > HOME_DRIVE_SECONDS) {
+        this.kiosk = drawKiosk(this, 1500, 490);
+        this.animalLayer.add(this.kiosk);
+      }
+      // Bremser i tide til at holde lige ud for kiosken
+      if (this.kiosk && this.kiosk.x < 760) {
+        this.state = 'stopping';
+        this.arrivingHome = true;
+      }
+    }
+
+    // Bilen gynger lidt på den hullede vej
+    this.outside.y = Math.sin(time / 80) * 3 * (this.speed / CRUISE_SPEED);
+  }
+
+  private showIntro() {
+    const dim = this.add.rectangle(640, 360, 1280, 720, 0x000000, 0.5).setDepth(50);
+    const play = makeButton(this, 640, 360, '▶️', 0x52b788, () => {
+      if (this.state !== 'intro') return;
+      this.abdul.say('Hej! Jeg hedder Abdul. Tryk på den røde knap, når du ser et dyr!');
+      this.drive(false);
+      this.time.delayedCall(200, () => {
+        dim.destroy();
+        play.destroy();
+      });
+    }, 120).setDepth(51);
+  }
+
+  private showStoppedButtons(visible: boolean) {
+    this.standButton.setVisible(visible);
+    this.iceCreamButton.setVisible(visible);
+    this.driveButton.setVisible(visible);
+  }
+
+  private drive(announce = true) {
+    this.state = 'driving';
+    this.showStoppedButtons(false);
+    this.stopButton.setVisible(true);
+    if (announce) this.abdul.say('Så kører vi!');
+  }
+
+  private driveHome() {
+    this.state = 'homeward';
+    this.homewardTime = 0;
+    // En kiosk fra sidste tur kan stadig være på vej ud af billedet. Ellers ville vi stoppe ved den.
+    this.kiosk?.destroy();
+    this.kiosk = undefined;
+    this.showStoppedButtons(false);
+    this.abdul.say('Så kører vi hen og får is!');
+  }
+
+  private brake() {
+    if (this.state !== 'driving') return;
+    this.state = 'stopping';
+    this.stopButton.setVisible(false);
+    this.abdul.say('Okay!');
+  }
+
+  private onStopped() {
+    this.state = 'stopped';
+
+    if (this.arrivingHome) {
+      this.arrivingHome = false;
+      this.abdul.say('Der er iskiosken!');
+      this.time.delayedCall(1800, () => {
+        this.cameras.main.fadeOut(500);
+        this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
+          this.scene.launch('IceCream');
+          this.scene.sleep();
+        });
+      });
+      return;
+    }
+
+    this.seenWhenStopped = [
+      ...new Set(
+        this.animals
+          .filter((a) => a.sprite.x > WINDOW.left + 30 && a.sprite.x < WINDOW.right - 30)
+          .map((a) => a.key),
+      ),
+    ];
+    this.showStoppedButtons(true);
+    this.abdul.say(this.seenWhenStopped.length > 0 ? 'Godt set! Rejs dig op og kig!' : 'Rejs dig op og kig efter dyr!');
+  }
+
+  private standUp() {
+    this.scene.launch('Lookout', { seen: this.seenWhenStopped });
+    this.scene.sleep();
+  }
+
+  private spawnAnimal() {
+    const key = randomAnimal();
+    const count = Math.random() < 0.3 ? 2 : 1;
+    for (let i = 0; i < count; i++) {
+      const sprite = addAnimalImage(this, key, 1400 + i * 130, Phaser.Math.Between(440, 480), 110);
+      // Små børn trykker på dyret i stedet for stopknappen, så det stopper også bilen
+      sprite.setInteractive({ useHandCursor: true }).on('pointerdown', () => this.brake());
+      this.animalLayer.add(sprite);
+      this.animals.push({ key, sprite });
+    }
+  }
+
+  private buildLandscape() {
+    const sky = this.add.rectangle(640, (HORIZON - 20) / 2, 1280, HORIZON + 20, 0x8fd3f4);
+    const sun = this.add.circle(1050, 150, 55, 0xffd23f);
+    const hills = this.add.container(0, 0);
+    const ground = this.add.rectangle(640, (HORIZON + 740) / 2, 1280, 740 - HORIZON, 0xe9c46a);
+    const trees = this.add.container(0, 0);
+    const water = this.add.container(0, 0);
+    this.animalLayer = this.add.container(0, 0);
+    const bushes = this.add.container(0, 0);
+    this.outside.add([sky, sun, hills, ground, trees, water, this.animalLayer, bushes]);
+
+    const { Between, FloatBetween } = Phaser.Math;
+    this.addLayer(hills, 5, 2100, 0.15, (x) => drawHill(this, x, HORIZON + 10, Between(500, 800), Between(120, 200)));
+    this.addLayer(trees, 4, 2400, 0.4, (x) => drawAcacia(this, x, HORIZON + 40, FloatBetween(0.8, 1.1)));
+    this.addLayer(water, 1, 2600, 0.6, (x) => drawWaterhole(this, x + 1000, 440, 360, 60));
+    this.addLayer(bushes, 6, 1900, 1.3, (x) => drawBush(this, x, 510, FloatBetween(1, 1.3)));
+  }
+
+  private addLayer(
+    container: Phaser.GameObjects.Container,
+    count: number,
+    span: number,
+    factor: number,
+    make: (x: number) => Phaser.GameObjects.Graphics,
+  ) {
+    const items: Phaser.GameObjects.Graphics[] = [];
+    for (let i = 0; i < count; i++) items.push(make((i * span) / count + Phaser.Math.Between(-60, 60)));
+    container.add(items);
+    this.layers.push({ items, factor, span });
+  }
+
+  // Jeepens indre: tag, dør og vinduesramme, tegnet oven på landskabet
+  private buildInterior() {
+    const { left, right, top, bottom } = WINDOW;
+    const g = this.add.graphics().setDepth(10);
+    g.fillStyle(0x4a5530);
+    g.fillRect(0, 0, 1280, top);
+    g.fillRect(0, 0, left, 720);
+    g.fillRect(right, 0, 1280 - right, 720);
+    g.fillRect(0, bottom, 1280, 720 - bottom);
+    g.lineStyle(14, 0x2f3720).strokeRoundedRect(left, top, right - left, bottom - top, 12);
+  }
+}
