@@ -6,7 +6,9 @@
     <style>
       body { font-family: sans-serif; max-width: 860px; margin: 2rem auto; padding: 0 1rem; }
       .row { display: flex; align-items: center; gap: 1rem; margin: 0.3rem 0; }
-      .default { font-weight: bold; }
+      .current { font-weight: bold; }
+      #result { position: sticky; bottom: 0; background: #fff8dc; padding: 1rem; border-top: 2px solid #e9c46a; margin-top: 2rem; }
+      #summary { width: 100%; font-size: 1rem; padding: 0.4rem; box-sizing: border-box; }
     </style>
   </head>
   <body>
@@ -14,32 +16,67 @@
     <p>
       Kandidater til dyrelydene (kun på din computer, kommer ikke på GitHub).
       <b>Fed</b> = den, spillet bruger nu. Spillet afspiller højst 4 sekunder.
+      Vælg den bedste for hvert dyr, og send linjen nederst til Claude.
     </p>
     <div id="list"></div>
+    <div id="result">
+      <label for="summary">Jeres valg:</label>
+      <input id="summary" readonly />
+      <button id="copy">Kopiér</button>
+    </div>
     <script type="module">
+      const NAMES = {
+        elephant: 'elefant', lion: 'løve', baboon: 'bavian', zebra: 'zebra', hippo: 'flodhest',
+        rhino: 'næsehorn', giraffe: 'giraf', ostrich: 'struds', buffalo: 'bøffel', hyena: 'hyæne',
+        gazelle: 'gazelle', gnu: 'gnu', crocodile: 'krokodille', sloth: 'dovendyr',
+      };
       const list = document.getElementById('list');
+      const summary = document.getElementById('summary');
+      const choices = {};
+
+      const updateSummary = () => {
+        summary.value = Object.entries(choices)
+          .map(([animal, i]) => `${NAMES[animal] ?? animal} ${i + 1}`)
+          .join(', ');
+      };
+
       try {
         const data = await (await fetch('/assets/sounds/candidates/candidates.json')).json();
         for (const [animal, sounds] of Object.entries(data)) {
           const heading = document.createElement('h2');
-          heading.textContent = animal;
+          heading.textContent = NAMES[animal] ?? animal;
           list.append(heading);
+          choices[animal] = 0;
           sounds.forEach((s, i) => {
-            const row = document.createElement('div');
-            row.className = i === 0 ? 'row default' : 'row';
+            const row = document.createElement('label');
+            row.className = i === 0 ? 'row current' : 'row';
+            const radio = document.createElement('input');
+            radio.type = 'radio';
+            radio.name = animal;
+            radio.checked = i === 0;
+            radio.addEventListener('change', () => {
+              choices[animal] = i;
+              updateSummary();
+            });
             const audio = document.createElement('audio');
             audio.controls = true;
             audio.preload = 'none';
             audio.src = '/' + s.file;
-            const label = document.createElement('span');
-            label.textContent = `${i + 1}. ${s.title} (${s.duration}s, id ${s.id})`;
-            row.append(audio, label);
+            const text = document.createElement('span');
+            text.textContent = `${i + 1}. ${s.title} (${s.duration}s)`;
+            row.append(radio, audio, text);
             list.append(row);
           });
         }
+        updateSummary();
       } catch {
         list.textContent = 'Fandt ingen kandidater i public/assets/sounds/candidates/.';
       }
+
+      document.getElementById('copy').addEventListener('click', async () => {
+        await navigator.clipboard.writeText(summary.value);
+        document.getElementById('copy').textContent = 'Kopieret ✓';
+      });
     </script>
   </body>
 </html>

@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
-import { addAnimalImage } from '../animalArt';
-import { randomAnimal, type AnimalKey } from '../animals';
+import { addAnimalImage, BABY_SCALE, HANG_ORIGIN_Y, variedSize } from '../animalArt';
+import { ANIMALS, randomAnimal, type AnimalKey } from '../animals';
 import { drawAcacia, drawBush, drawHill, drawWaterhole } from '../scenery';
 import { playAnimalSound } from '../sound';
 
@@ -22,7 +22,7 @@ const HERD_SPACING = 55; // større end hitSize for "far", så trykområderne i 
 const TAP_TOLERANCE = 30; // så meget må fingeren flytte sig, før det tæller som et træk
 type Distance = keyof typeof DISTANCES;
 
-const DRINKERS: AnimalKey[] = ['elephant', 'zebra', 'buffalo', 'giraffe'];
+const DRINKERS: AnimalKey[] = ['elephant', 'zebra', 'buffalo', 'giraffe', 'gnu', 'gazelle'];
 
 // Spilleren står op i jeepen og kigger ud over savannen.
 // Knapperne ligger i LookoutUIScene, så de ikke zoomer med, når kikkerten bruges.
@@ -133,25 +133,29 @@ export class LookoutScene extends Phaser.Scene {
     const extras: Distance[] = ['mid', 'far', 'far', 'far'];
     extras.forEach((distance, i) => {
       const key = randomAnimal();
-      const herd = distance === 'far' ? Between(1, 3) : 1;
+      const herd = distance === 'far' && !ANIMALS[key].hangs ? Between(1, 3) : 1;
       const x = slots[i] + Between(-40, 40);
-      for (let j = 0; j < herd; j++) this.addAnimal(key, x + j * HERD_SPACING, distance);
+      for (let j = 0; j < herd; j++) this.addAnimal(key, x + j * HERD_SPACING, distance, j > 0 && Math.random() < 0.4);
     });
   }
 
   private placeWaterhole(x: number) {
     drawWaterhole(this, x, WATERHOLE_Y, 520, 90).setDepth(WATERHOLE_Y - 10);
-    this.addAnimalAt('hippo', x - 60 + Phaser.Math.Between(-40, 40), WATERHOLE_Y + 10, 110, 120, true);
+    this.addAnimalAt('hippo', x - 60 + Phaser.Math.Between(-40, 40), WATERHOLE_Y + 10, 110, 120, 0.55);
+    // Nogle gange lurer der en krokodille, hvor kun øjne og ryg stikker op
+    if (Math.random() < 0.6) this.addAnimalAt('crocodile', x + 110, WATERHOLE_Y + 16, 160, 120, 0.45);
     // Et dyr drikker ved den anden bred
     this.addAnimalAt(Phaser.Utils.Array.GetRandom(DRINKERS), x + 170, WATERHOLE_Y - 40, 90, 120);
   }
 
-  private addAnimal(key: AnimalKey, x: number, distance: Distance) {
+  private addAnimal(key: AnimalKey, x: number, distance: Distance, baby = false) {
     const { y, size, hitSize } = DISTANCES[distance];
-    this.addAnimalAt(key, x, y, size, hitSize);
+    this.addAnimalAt(key, x, y, variedSize(size) * (baby ? BABY_SCALE : 1), hitSize);
   }
 
-  private addAnimalAt(key: AnimalKey, x: number, y: number, size: number, hitSize: number, inWater = false) {
+  // (x, y) er hvor dyret står. `waterline` er hvor stor en del af dyret der stikker op af vandet.
+  private addAnimalAt(key: AnimalKey, x: number, y: number, size: number, hitSize: number, waterline?: number) {
+    const hangs = ANIMALS[key].hangs ?? false;
     const sprite = addAnimalImage(this, key, x, y, size).setDepth(y).setFlipX(Math.random() < 0.5);
 
     // Trykområdet er mindst hitSize stort og centreret på dyret. Det angives i billedets egne
@@ -170,12 +174,18 @@ export class LookoutScene extends Phaser.Scene {
     });
 
     let baseY = y;
-    if (inWater) {
+    if (waterline !== undefined) {
       // Kun den øverste del stikker op af vandet
-      const visible = 0.55;
-      sprite.setCrop(0, 0, sprite.width, sprite.height * visible);
-      baseY = y + sprite.height * (1 - visible) * sprite.scaleY;
+      sprite.setCrop(0, 0, sprite.width, sprite.height * waterline);
+      baseY = y + sprite.height * (1 - waterline) * sprite.scaleY;
       sprite.setY(baseY);
+    }
+    if (hangs) {
+      // Hænger i et akacietræ, der står hvor dyret ellers ville stå
+      const treeScale = size / 80;
+      drawAcacia(this, x - 45 * treeScale, y, treeScale).setDepth(y - 1);
+      baseY = y - 118 * treeScale;
+      sprite.setOrigin(0.5, HANG_ORIGIN_Y).setY(baseY);
     }
 
     this.tweens.add({
@@ -193,9 +203,10 @@ export class LookoutScene extends Phaser.Scene {
       if (Phaser.Math.Distance.Between(p.downX, p.downY, p.upX, p.upY) > TAP_TOLERANCE) return;
 
       playAnimalSound(this, key);
+      // Dyr hopper op; dovendyr gynger lidt ned i grenen
       this.tweens.add({
         targets: sprite,
-        y: { from: baseY, to: baseY - size * 0.4 },
+        y: { from: baseY, to: baseY + (hangs ? size * 0.15 : -size * 0.4) },
         duration: 180,
         yoyo: true,
         ease: 'Quad.easeOut',
@@ -204,7 +215,7 @@ export class LookoutScene extends Phaser.Scene {
       if (found) return;
       found = true;
       this.add
-        .text(x, y - size * 1.2, '⭐', { fontSize: `${Math.max(14, size * 0.4)}px` })
+        .text(x, hangs ? baseY + size * 1.15 : y - size * 1.2, '⭐', { fontSize: `${Math.max(14, size * 0.4)}px` })
         .setOrigin(0.5)
         .setDepth(y);
       this.events.emit('animal-found', key);

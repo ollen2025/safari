@@ -68,7 +68,7 @@ export class CollectionBar {
     const container = scene.add.container(0, 0, [bg]).setDepth(20);
     ANIMAL_KEYS.forEach((key, i) => {
       const slotX = startX + i * spacing;
-      const icon = addAnimalImage(scene, key, slotX, y + 24, 50);
+      const icon = addAnimalImage(scene, key, slotX, y + 24, 50, 1);
       const label = scene.add
         .text(0, 0, '', { fontFamily: 'sans-serif', fontSize: '20px', fontStyle: 'bold', color: '#222' })
         .setOrigin(0.5);

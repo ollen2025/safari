@@ -1,7 +1,8 @@
 import Phaser from 'phaser';
 import { Abdul } from '../abdul';
-import { addAnimalImage } from '../animalArt';
-import { randomAnimal, type AnimalKey } from '../animals';
+import { addAnimalImage, BABY_SCALE, HANG_ORIGIN_Y, variedSize } from '../animalArt';
+import { ANIMALS, randomAnimal, type AnimalKey } from '../animals';
+import { line, LINES } from '../lines';
 import { drawAcacia, drawBush, drawHill, drawKiosk, drawWaterhole } from '../scenery';
 import { CollectionBar, makeButton } from '../ui';
 
@@ -12,6 +13,7 @@ const ANIMAL_PARALLAX = 0.8;
 const HORIZON = 300;
 const WINDOW = { left: 40, right: 1240, top: 80, bottom: 510 };
 const HOME_DRIVE_SECONDS = 4; // så længe kører man, før iskiosken dukker op
+const RESTART_CONFIRM_MS = 4000; // "start forfra" kræver to tryk inden for denne tid
 
 type DriveState = 'intro' | 'driving' | 'homeward' | 'stopping' | 'stopped';
 
@@ -25,6 +27,7 @@ interface ScrollLayer {
 interface PassingAnimal {
   key: AnimalKey;
   sprite: Phaser.GameObjects.Image;
+  tree?: Phaser.GameObjects.Graphics; // træet som dovendyret hænger i
 }
 
 // Spilleren sidder i jeepen og kigger ud ad sidevinduet
@@ -38,6 +41,7 @@ export class DriveScene extends Phaser.Scene {
   private homewardTime = 0;
   private arrivingHome = false;
   private kiosk?: Phaser.GameObjects.Container;
+  private restartArmedUntil = 0;
 
   private outside!: Phaser.GameObjects.Container;
   private animalLayer!: Phaser.GameObjects.Container;
@@ -63,14 +67,16 @@ export class DriveScene extends Phaser.Scene {
     this.standButton = makeButton(this, 690, 615, '🧍', 0x2a9d8f, () => this.standUp()).setVisible(false);
     this.iceCreamButton = makeButton(this, 890, 615, '🍦', 0xf4a6c1, () => this.driveHome()).setVisible(false);
     this.driveButton = makeButton(this, 1110, 615, '🚙', 0x52b788, () => this.drive()).setVisible(false);
+    // Lille knap i hjørnet, så den ikke trykkes på ved et uheld
+    const restartButton = makeButton(this, 1222, 40, '🔄', 0xffffff, () => this.restart(restartButton), 32);
 
     this.events.on('wake', (_sys: Phaser.Scenes.Systems, data?: { from?: string }) => {
       if (data?.from === 'icecream') {
         this.cameras.main.fadeIn(400);
-        this.abdul.say('Så tager vi på safari igen!');
+        this.abdul.say(line(LINES.backToSafari));
         this.drive(false);
       } else {
-        this.abdul.say('Skal vi køre videre?');
+        this.abdul.say(line(LINES.wake));
       }
     });
     this.showIntro();
@@ -93,10 +99,14 @@ export class DriveScene extends Phaser.Scene {
       }
     }
 
-    for (const animal of this.animals) animal.sprite.x -= this.speed * ANIMAL_PARALLAX * dt;
+    for (const animal of this.animals) {
+      animal.sprite.x -= this.speed * ANIMAL_PARALLAX * dt;
+      if (animal.tree) animal.tree.x -= this.speed * ANIMAL_PARALLAX * dt;
+    }
     this.animals = this.animals.filter((animal) => {
       if (animal.sprite.x > -200) return true;
       animal.sprite.destroy();
+      animal.tree?.destroy();
       return false;
     });
 
@@ -137,7 +147,7 @@ export class DriveScene extends Phaser.Scene {
     const dim = this.add.rectangle(640, 360, 1280, 720, 0x000000, 0.5).setDepth(50);
     const play = makeButton(this, 640, 360, '▶️', 0x52b788, () => {
       if (this.state !== 'intro') return;
-      this.abdul.say('Hej! Jeg hedder Abdul. Tryk på den røde knap, når du ser et dyr!');
+      this.abdul.say(line(LINES.intro));
       this.drive(false);
       this.time.delayedCall(200, () => {
         dim.destroy();
@@ -156,7 +166,20 @@ export class DriveScene extends Phaser.Scene {
     this.state = 'driving';
     this.showStoppedButtons(false);
     this.stopButton.setVisible(true);
-    if (announce) this.abdul.say('Så kører vi!');
+    if (announce) this.abdul.say(line(LINES.drive));
+  }
+
+  // Nulstiller alle fundne dyr. Første tryk spørger, andet tryk (inden for et par sekunder) starter forfra.
+  private restart(button: Phaser.GameObjects.Container) {
+    if (this.time.now > this.restartArmedUntil) {
+      this.restartArmedUntil = this.time.now + RESTART_CONFIRM_MS;
+      this.abdul.say(line(LINES.restartConfirm));
+      this.tweens.add({ targets: button, angle: 360, duration: 600 });
+      return;
+    }
+    this.restartArmedUntil = 0;
+    this.registry.set('counts', {});
+    this.abdul.say(line(LINES.restarted));
   }
 
   private driveHome() {
@@ -166,14 +189,14 @@ export class DriveScene extends Phaser.Scene {
     this.kiosk?.destroy();
     this.kiosk = undefined;
     this.showStoppedButtons(false);
-    this.abdul.say('Så kører vi hen og får is!');
+    this.abdul.say(line(LINES.homeward));
   }
 
   private brake() {
     if (this.state !== 'driving') return;
     this.state = 'stopping';
     this.stopButton.setVisible(false);
-    this.abdul.say('Okay!');
+    this.abdul.say(line(LINES.brake));
   }
 
   private onStopped() {
@@ -181,7 +204,7 @@ export class DriveScene extends Phaser.Scene {
 
     if (this.arrivingHome) {
       this.arrivingHome = false;
-      this.abdul.say('Der er iskiosken!');
+      this.abdul.say(line(LINES.arriveKiosk));
       this.time.delayedCall(1800, () => {
         this.cameras.main.fadeOut(500);
         this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
@@ -200,7 +223,7 @@ export class DriveScene extends Phaser.Scene {
       ),
     ];
     this.showStoppedButtons(true);
-    this.abdul.say(this.seenWhenStopped.length > 0 ? 'Godt set! Rejs dig op og kig!' : 'Rejs dig op og kig efter dyr!');
+    this.abdul.say(line(this.seenWhenStopped.length > 0 ? LINES.stoppedSeen : LINES.stoppedNothing));
   }
 
   private standUp() {
@@ -210,14 +233,31 @@ export class DriveScene extends Phaser.Scene {
 
   private spawnAnimal() {
     const key = randomAnimal();
+    if (ANIMALS[key].hangs) {
+      this.spawnHangingAnimal(key);
+      return;
+    }
     const count = Math.random() < 0.3 ? 2 : 1;
     for (let i = 0; i < count; i++) {
-      const sprite = addAnimalImage(this, key, 1400 + i * 130, Phaser.Math.Between(440, 480), 110);
+      // Den anden i et par er nogle gange en unge
+      const baby = i > 0 && Math.random() < 0.5;
+      const size = variedSize(110) * (baby ? BABY_SCALE : 1);
+      const sprite = addAnimalImage(this, key, 1400 + i * 130, Phaser.Math.Between(440, 480), size);
       // Små børn trykker på dyret i stedet for stopknappen, så det stopper også bilen
       sprite.setInteractive({ useHandCursor: true }).on('pointerdown', () => this.brake());
       this.animalLayer.add(sprite);
       this.animals.push({ key, sprite });
     }
+  }
+
+  // Dovendyret hænger i et træ, der kører forbi sammen med det
+  private spawnHangingAnimal(key: AnimalKey) {
+    const groundY = Phaser.Math.Between(450, 480);
+    const tree = drawAcacia(this, 1400, groundY, 1);
+    const sprite = addAnimalImage(this, key, 1445, groundY - 118, variedSize(80)).setOrigin(0.5, HANG_ORIGIN_Y);
+    sprite.setInteractive({ useHandCursor: true }).on('pointerdown', () => this.brake());
+    this.animalLayer.add([tree, sprite]);
+    this.animals.push({ key, sprite, tree });
   }
 
   private buildLandscape() {

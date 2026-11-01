@@ -5,30 +5,39 @@ export type AnimalKey =
   | 'giraffe'
   | 'zebra'
   | 'lion'
-  | 'monkey'
+  | 'baboon'
   | 'hippo'
   | 'rhino'
   | 'buffalo'
   | 'ostrich'
-  | 'hyena';
+  | 'hyena'
+  | 'gazelle'
+  | 'gnu'
+  | 'crocodile'
+  | 'sloth';
 
 export interface AnimalDef {
   name: string; // "en elefant", siges af Abdul
   plural: string; // "elefanter", til "Nu har du fundet 3 elefanter"
-  emoji?: string; // dyr uden emoji bliver tegnet i animalArt.ts
+  variants?: number; // antal tegninger, fx lion.svg og lion-2.svg (standard 1)
+  hangs?: boolean; // hænger i et træ i stedet for at stå på jorden
 }
 
 export const ANIMALS: Record<AnimalKey, AnimalDef> = {
-  elephant: { name: 'en elefant', plural: 'elefanter', emoji: '🐘' },
-  giraffe: { name: 'en giraf', plural: 'giraffer', emoji: '🦒' },
-  zebra: { name: 'en zebra', plural: 'zebraer', emoji: '🦓' },
-  lion: { name: 'en løve', plural: 'løver', emoji: '🦁' },
-  monkey: { name: 'en abe', plural: 'aber', emoji: '🐒' },
-  hippo: { name: 'en flodhest', plural: 'flodheste', emoji: '🦛' },
-  rhino: { name: 'et næsehorn', plural: 'næsehorn', emoji: '🦏' },
-  buffalo: { name: 'en bøffel', plural: 'bøfler', emoji: '🐃' },
+  elephant: { name: 'en elefant', plural: 'elefanter' },
+  giraffe: { name: 'en giraf', plural: 'giraffer' },
+  zebra: { name: 'en zebra', plural: 'zebraer' },
+  lion: { name: 'en løve', plural: 'løver', variants: 2 },
+  baboon: { name: 'en bavian', plural: 'bavianer' },
+  hippo: { name: 'en flodhest', plural: 'flodheste' },
+  rhino: { name: 'et næsehorn', plural: 'næsehorn' },
+  buffalo: { name: 'en bøffel', plural: 'bøfler' },
   ostrich: { name: 'en struds', plural: 'strudse' },
   hyena: { name: 'en hyæne', plural: 'hyæner' },
+  gazelle: { name: 'en gazelle', plural: 'gazeller' },
+  gnu: { name: 'en gnu', plural: 'gnuer' },
+  crocodile: { name: 'en krokodille', plural: 'krokodiller' },
+  sloth: { name: 'et dovendyr', plural: 'dovendyr', hangs: true },
 };
 
 export const ANIMAL_KEYS = Object.keys(ANIMALS) as AnimalKey[];

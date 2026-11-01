@@ -9,8 +9,10 @@ Et simpelt safari-spil til små børn (ca. 4 år). Gameplay og glæde kommer fø
 - Når bilen holder stille, kan man **rejse sig op** 🧍 og kigge rundt på savannen (pile eller træk med fingeren).
 - Med **kikkerten** 🔭 kan man se dyr langt væk.
 - Trykker man på et dyr, siger det sin **dyrelyd** og bliver **talt** (stort tal på skærmen, og Abdul siger fx "Nu har du fundet 3 zebraer!"). Samlingen øverst viser, hvor mange man har fundet af hvert dyr.
-- Dyr: elefant, giraf, zebra, løve, abe, flodhest, næsehorn, bøffel, struds og hyæne. Der er også **vandhuller** med flodheste.
+- Dyr: elefant, giraf, zebra, løve (han og hun), bavian, flodhest, næsehorn, bøffel, struds, hyæne, gazelle, gnu, krokodille og dovendyr (hænger i et træ). Nogle gange er der en unge med. Der er også **vandhuller** med flodheste og krokodiller.
 - Når bilen holder, kan man køre hen til **iskiosken** 🍦: Tryk kugler på isen (Abdul tæller op til 5), og spis den bagefter.
+- Abdul har flere sætninger til hver situation (`src/lines.ts`), så han ikke siger det samme hele tiden.
+- 🔄 i øverste hjørne starter forfra (nulstiller fundne dyr). Den skal trykkes to gange, så den ikke rammes ved et uheld.
 
 ## Lyde
 - Dyrelydene er CC0-optagelser fra freesound.org, se [CREDITS](public/assets/sounds/animals/CREDITS.md).
@@ -27,7 +29,8 @@ Et simpelt safari-spil til små børn (ca. 4 år). Gameplay og glæde kommer fø
 | `src/scenes/BootScene.ts` | Indlæser lyde, før spillet starter |
 | `src/abdul.ts` | Abdul: tegning, tale og taleboble |
 | `src/animals.ts` | Dyrene (navne, flertal) og tælling af fundne dyr |
-| `src/animalArt.ts` | Dyrenes billeder: emoji eller tegnet (struds, hyæne) |
+| `src/lines.ts` | Abduls replikker |
+| `src/animalArt.ts` | Indlæsning af dyretegningerne, unger og størrelsesvariation |
 | `src/sound.ts` | Afspilning af dyrelyde og Abduls stemme |
 | `src/ui.ts` | Knapper og samlings-bjælken |
 | `src/scenery.ts` | Træer, buske, bakker, vandhuller og iskiosk |
@@ -37,7 +40,7 @@ Et simpelt safari-spil til små børn (ca. 4 år). Gameplay og glæde kommer fø
 - **Phaser 3** som 2D-spilmotor (scener, touch-input, tweens, lyd)
 - **Vite** som dev-server og build
 - Målplatform: **browser på tablet** (touch først), evt. som PWA senere
-- Grafik i starten: **emojis** som dyr (🐘🦒🦓🦁🐒🦛🦏🐃). Struds og hyæne har ingen emoji og er tegnet i kode. Skiftes til sprites senere.
+- Grafik: håndtegnede **SVG-tegninger** af dyrene i `public/assets/animals/` og af isen i `public/assets/icecream/`. En tegning skiftes ud ved at erstatte filen; ekstra udgaver hedder fx `lion-2.svg` (sæt `variants` i `src/animals.ts`).
 
 ## Kom i gang
 Kræver Node.js (LTS).

@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { Abdul } from '../abdul';
 import { addAnimalImage } from '../animalArt';
 import { ANIMALS, ANIMAL_KEYS, countAnimal, getCounts, type AnimalKey } from '../animals';
+import { line, LINES } from '../lines';
 import { CollectionBar, makeBigNumber, makeButton, popIn } from '../ui';
 import type { LookoutScene } from './LookoutScene';
 
@@ -41,14 +42,14 @@ export class LookoutUIScene extends Phaser.Scene {
       const foundAll = ANIMAL_KEYS.every((k) => (counts[k] ?? 0) > 0);
       this.showCount(key, count);
 
-      let line = `Godt set! Nu har du fundet ${count} ${ANIMALS[key].plural}!`;
-      if (count === 1) line = foundAll ? 'Wow! Du har fundet alle dyrene!' : `Godt set! Det er ${ANIMALS[key].name}!`;
-      this.time.delayedCall(900, () => abdul.say(line));
+      let text = line(LINES.foundMore, { n: count, plural: ANIMALS[key].plural });
+      if (count === 1) text = foundAll ? line(LINES.foundAll) : line(LINES.foundFirst, { name: ANIMALS[key].name });
+      this.time.delayedCall(900, () => abdul.say(text));
     };
     world.events.on('animal-found', onFound);
     this.events.once('shutdown', () => world.events.off('animal-found', onFound));
 
-    abdul.say('Kig rundt! Brug kikkerten til dyr langt væk.');
+    abdul.say(line(LINES.lookoutStart));
   }
 
   private sitDown() {
@@ -59,7 +60,7 @@ export class LookoutUIScene extends Phaser.Scene {
 
   // Stort tal med dyret, så man kan øve tal: "3 zebraer"
   private showCount(key: AnimalKey, count: number) {
-    const icon = addAnimalImage(this, key, -60, 60, 110);
+    const icon = addAnimalImage(this, key, -60, 60, 110, 1);
     const number = makeBigNumber(this, 60, 0, count, 110);
     const toast = this.add.container(640, 190, [icon, number]).setDepth(40);
     popIn(this, toast);

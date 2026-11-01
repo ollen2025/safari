@@ -1,18 +1,27 @@
 import Phaser from 'phaser';
 import { Abdul } from '../abdul';
+import { line, LINES } from '../lines';
 import { drawKiosk } from '../scenery';
 import { speak } from '../sound';
 import { makeBigNumber, makeButton, popIn } from '../ui';
 
-const FLAVORS = [0xf4a6c1, 0x7b4a2d, 0xfff1b5, 0xa8d672]; // jordbær, chokolade, vanilje, pistacie
+const FLAVORS = ['strawberry', 'chocolate', 'vanilla', 'pistachio']; // tegninger i public/assets/icecream/
 const NUMBER_WORDS = ['Nul', 'En', 'To', 'Tre', 'Fire', 'Fem'];
 const MAX_SCOOPS = 5;
-const SCOOP_RADIUS = 62;
 const BITES_PER_SCOOP = 3;
-const CONE = { x: 760, top: 500, bottom: 690, halfWidth: 72 };
+const EAT_HINT_MS = 6000; // så længe venter Abdul, før han forklarer, at man kan spise isen
+
+const CONE = { x: 760, top: 480, width: 160 };
+const SCOOP_WIDTH = 150;
+const SCOOP_ORIGIN_Y = 0.62; // midten af kuglens runde top i tegningen
+const SCOOP_STEP = 70; // afstand mellem kuglerne i stakken
+// Den første kugle sidder nede i vaflen (bag kanten); de næste ligger ovenpå og foran
+const FIRST_SCOOP_DEPTH = 5;
+const CONE_DEPTH = 10;
 
 interface Scoop {
-  container: Phaser.GameObjects.Container;
+  image: Phaser.GameObjects.Image;
+  baseScale: number;
   bitesLeft: number;
 }
 
@@ -23,7 +32,8 @@ export class IceCreamScene extends Phaser.Scene {
   private leaving = false;
   private flavorButtons: Phaser.GameObjects.Container[] = [];
   private numberText?: Phaser.GameObjects.Text;
-  private cone!: Phaser.GameObjects.Graphics;
+  private hintTimer?: Phaser.Time.TimerEvent;
+  private cone!: Phaser.GameObjects.Image;
   private abdul!: Abdul;
 
   constructor() {
@@ -36,6 +46,7 @@ export class IceCreamScene extends Phaser.Scene {
     this.leaving = false;
     this.flavorButtons = [];
     this.numberText = undefined;
+    this.hintTimer = undefined;
     this.cameras.main.fadeIn(400);
 
     this.add.rectangle(640, 200, 1280, 400, 0x8fd3f4);
@@ -43,11 +54,16 @@ export class IceCreamScene extends Phaser.Scene {
     this.add.rectangle(640, 560, 1280, 320, 0xe9c46a);
     drawKiosk(this, 270, 720).setScale(1.8);
 
-    this.cone = this.drawCone();
-    FLAVORS.forEach((color, i) => {
+    this.cone = this.add.image(CONE.x, CONE.top, 'cone').setOrigin(0.5, 0).setDepth(CONE_DEPTH);
+    this.cone.setScale(CONE.width / this.cone.width);
+
+    FLAVORS.forEach((flavor, i) => {
       const x = i % 2 === 0 ? 190 : 350;
       const y = i < 2 ? 470 : 620;
-      this.flavorButtons.push(makeButton(this, x, y, '', color, () => this.addScoop(color), 62));
+      const button = makeButton(this, x, y, '', 0xfff8e7, () => this.addScoop(flavor), 62);
+      const icon = this.add.image(0, 6, `scoop-${flavor}`);
+      button.add(icon.setScale(95 / icon.width));
+      this.flavorButtons.push(button);
     });
 
     // Tryk på isen for at spise den
@@ -57,37 +73,36 @@ export class IceCreamScene extends Phaser.Scene {
       .on('pointerdown', () => this.bite());
 
     this.abdul = new Abdul(this, 1130, 610, 0.8);
-    this.abdul.say('Hvilken is vil du have? Tryk på farverne!');
+    this.abdul.say(line(LINES.iceCreamStart));
   }
 
-  private drawCone() {
-    const { x, top, bottom, halfWidth } = CONE;
-    const g = this.add.graphics();
-    g.fillStyle(0xd9a066).fillTriangle(x - halfWidth, top, x + halfWidth, top, x, bottom);
-    g.fillStyle(0xc68b4e).fillRect(x - halfWidth - 6, top - 6, (halfWidth + 6) * 2, 16);
-    return g;
-  }
-
-  private addScoop(color: number) {
+  private addScoop(flavor: string) {
     if (this.eating || this.scoops.length >= MAX_SCOOPS) return;
 
-    const y = CONE.top - 8 - this.scoops.length * SCOOP_RADIUS * 1.1;
-    const g = this.add.graphics();
-    g.fillStyle(color).fillCircle(0, 0, SCOOP_RADIUS);
-    g.fillEllipse(-25, SCOOP_RADIUS * 0.7, 30, 26).fillEllipse(20, SCOOP_RADIUS * 0.75, 26, 22);
-    g.fillStyle(0xffffff, 0.5).fillCircle(-20, -22, 14);
-    const container = this.add.container(CONE.x, -100, [g]);
-    this.tweens.add({ targets: container, y, duration: 500, ease: 'Bounce.easeOut' });
-    this.scoops.push({ container, bitesLeft: BITES_PER_SCOOP });
+    const index = this.scoops.length;
+    const image = this.add
+      .image(CONE.x, -100, `scoop-${flavor}`)
+      .setOrigin(0.5, SCOOP_ORIGIN_Y)
+      .setDepth(index === 0 ? FIRST_SCOOP_DEPTH : CONE_DEPTH + index);
+    const baseScale = SCOOP_WIDTH / image.width;
+    image.setScale(baseScale).setFlipX(Math.random() < 0.5);
+    this.tweens.add({ targets: image, y: CONE.top + 14 - index * SCOOP_STEP, duration: 500, ease: 'Bounce.easeOut' });
+    this.scoops.push({ image, baseScale, bitesLeft: BITES_PER_SCOOP });
 
     const count = this.scoops.length;
     this.showNumber(count);
     if (count === MAX_SCOOPS) {
       this.flavorButtons.forEach((b) => b.setAlpha(0.4));
-      this.abdul.say('Fem kugler! Tryk på isen for at spise den!');
+      this.abdul.say(line(LINES.iceCreamMax));
     } else {
       this.abdul.say(`${NUMBER_WORDS[count]}!`);
     }
+
+    // Hvis der ikke sker mere, forklarer Abdul, at man kan spise isen
+    this.hintTimer?.remove();
+    this.hintTimer = this.time.delayedCall(EAT_HINT_MS, () => {
+      if (!this.eating) this.abdul.say(line(LINES.eatHint));
+    });
   }
 
   private showNumber(n: number) {
@@ -100,6 +115,7 @@ export class IceCreamScene extends Phaser.Scene {
     if (this.scoops.length === 0) return;
     if (!this.eating) {
       this.eating = true;
+      this.hintTimer?.remove();
       this.flavorButtons.forEach((b) => b.setAlpha(0.4));
       this.numberText?.destroy();
     }
@@ -108,11 +124,11 @@ export class IceCreamScene extends Phaser.Scene {
     top.bitesLeft--;
     speak('Nam!');
     if (top.bitesLeft > 0) {
-      this.tweens.add({ targets: top.container, scale: top.bitesLeft / BITES_PER_SCOOP, duration: 120 });
+      this.tweens.add({ targets: top.image, scale: (top.baseScale * top.bitesLeft) / BITES_PER_SCOOP, duration: 120 });
       return;
     }
     this.scoops.pop();
-    this.tweens.add({ targets: top.container, scale: 0, duration: 150, onComplete: () => top.container.destroy() });
+    this.tweens.add({ targets: top.image, scale: 0, duration: 150, onComplete: () => top.image.destroy() });
     if (this.scoops.length === 0) this.finish();
   }
 
@@ -120,7 +136,7 @@ export class IceCreamScene extends Phaser.Scene {
     this.tweens.add({ targets: this.cone, alpha: 0, duration: 300 });
     const face = this.add.text(CONE.x, 400, '😋', { fontSize: '160px', padding: { x: 10, y: 10 } }).setOrigin(0.5);
     popIn(this, face);
-    this.time.delayedCall(600, () => this.abdul.say('Mmm, den var god! Skal vi tage på safari igen?'));
+    this.time.delayedCall(600, () => this.abdul.say(line(LINES.iceCreamDone)));
     makeButton(this, CONE.x, 620, '🚙', 0x52b788, () => this.backToSafari()).setDepth(30);
   }
 

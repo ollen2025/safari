@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="140" height="112" viewBox="0 0 140 112">
+<defs><clipPath id="scoop-strawberry"><path d="M8 70 A62 62 0 0 1 132 70 L132 76 Q128 90 116 84 Q108 100 98 88 Q90 96 84 90 Q78 116 68 92 Q60 98 52 88 Q42 100 32 86 Q20 94 14 80 Q8 78 8 70 Z"/></clipPath></defs>
+<g stroke="#2b2118" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
+  <path d="M8 70 A62 62 0 0 1 132 70 L132 76 Q128 90 116 84 Q108 100 98 88 Q90 96 84 90 Q78 116 68 92 Q60 98 52 88 Q42 100 32 86 Q20 94 14 80 Q8 78 8 70 Z" fill="#f4a6c1"/>
+  <g clip-path="url(#scoop-strawberry)" stroke="none">
+    <ellipse cx="92" cy="86" rx="56" ry="22" fill="#d97a9c"/>
+    <ellipse cx="44" cy="34" rx="18" ry="11" fill="#fff" opacity="0.6" transform="rotate(-30 44 34)"/>
+  </g>
+  <g stroke="none">
+    <rect x="44" y="30" width="10" height="4" rx="2" fill="#e63946" transform="rotate(30 49 32)"/>
+    <rect x="72" y="22" width="10" height="4" rx="2" fill="#3a86ff" transform="rotate(-20 77 24)"/>
+    <rect x="96" y="38" width="10" height="4" rx="2" fill="#2a9d8f" transform="rotate(50 101 40)"/>
+    <rect x="60" y="48" width="10" height="4" rx="2" fill="#ffbe0b" transform="rotate(-40 65 50)"/>
+    <rect x="84" y="56" width="10" height="4" rx="2" fill="#8338ec" transform="rotate(15 89 58)"/>
+    <rect x="34" y="56" width="10" height="4" rx="2" fill="#3a86ff" transform="rotate(70 39 58)"/>
+    <rect x="108" y="62" width="10" height="4" rx="2" fill="#e63946" transform="rotate(-60 113 64)"/>
+  </g>
+  <path d="M8 70 A62 62 0 0 1 132 70 L132 76 Q128 90 116 84 Q108 100 98 88 Q90 96 84 90 Q78 116 68 92 Q60 98 52 88 Q42 100 32 86 Q20 94 14 80 Q8 78 8 70 Z" fill="none"/>
+</g>
+</svg>
