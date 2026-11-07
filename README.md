@@ -6,8 +6,10 @@ Et simpelt safari-spil til små børn (ca. 4 år). Gameplay og glæde kommer fø
 - Spilleren sidder i en jeep og kigger ud ad vinduet, mens savannen kører forbi.
 - Chaufføren hedder **Abdul**. Han snakker (browserens oplæser) og viser en taleboble.
 - Ser man et dyr, trykker man på den røde ✋-knap (eller direkte på dyret), og Abdul stopper.
-- Når bilen holder stille, kan man **rejse sig op** 🧍 og kigge rundt på savannen (pile eller træk med fingeren).
-- Med **kikkerten** 🔭 kan man se dyr langt væk.
+- Når bilen holder stille, kan man **rejse sig op** 🧍 og kigge rundt på savannen (pile eller træk med fingeren). Har man været ude, skal bilen køre videre, før man kan gå ud igen.
+- På tastatur: **mellemrum** stopper bilen, og **1**, **2**, **3** vælger gå ud, is og kør videre.
+- Med **kikkerten** 🔭 kan man se dyr langt væk. På tastatur styres udsigten og kikkerten med piletasterne.
+- På tastatur har hvert dyr et lille skilt med et tal eller bogstav. Tryk på tasten for at markere dyret, når det er i billedet.
 - Trykker man på et dyr, siger det sin **dyrelyd** og bliver **talt** (stort tal på skærmen, og Abdul siger fx "Nu har du fundet 3 zebraer!"). Samlingen øverst viser, hvor mange man har fundet af hvert dyr.
 - Dyr: elefant, giraf, zebra, løve (han og hun), bavian, flodhest, næsehorn, bøffel, struds, hyæne, gazelle, gnu, krokodille og dovendyr (hænger i et træ). Nogle gange er der en unge med. Der er også **vandhuller** med flodheste og krokodiller.
 - Når bilen holder, kan man køre hen til **iskiosken** 🍦: Tryk kugler på isen (Abdul tæller op til 5), og spis den bagefter.

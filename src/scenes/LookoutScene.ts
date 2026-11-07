@@ -20,7 +20,13 @@ const DISTANCES = {
 };
 const HERD_SPACING = 55; // større end hitSize for "far", så trykområderne i en flok ikke overlapper
 const TAP_TOLERANCE = 30; // så meget må fingeren flytte sig, før det tæller som et træk
+const KEY_LABELS = '123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ'; // tasterne man kan markere dyr med
 type Distance = keyof typeof DISTANCES;
+
+interface KeyedAnimal {
+  sprite: Phaser.GameObjects.Image;
+  mark: () => void;
+}
 
 const DRINKERS: AnimalKey[] = ['elephant', 'zebra', 'buffalo', 'giraffe', 'gnu', 'gazelle'];
 
@@ -29,6 +35,8 @@ const DRINKERS: AnimalKey[] = ['elephant', 'zebra', 'buffalo', 'giraffe', 'gnu',
 export class LookoutScene extends Phaser.Scene {
   panDirection = 0;
   private seen: AnimalKey[] = [];
+  private keyedAnimals = new Map<string, KeyedAnimal>();
+  private cursors?: Phaser.Types.Input.Keyboard.CursorKeys;
 
   constructor() {
     super('Lookout');
@@ -38,6 +46,7 @@ export class LookoutScene extends Phaser.Scene {
   init(data: { seen?: AnimalKey[] }) {
     this.seen = data.seen ?? [];
     this.panDirection = 0;
+    this.keyedAnimals = new Map();
   }
 
   create() {
@@ -68,15 +77,32 @@ export class LookoutScene extends Phaser.Scene {
       last.y = p.y;
     });
 
+    this.cursors = this.input.keyboard?.createCursorKeys();
+    // Tryk på tallet eller bogstavet ved et dyr for at markere det. Kun dyr i billedet tæller,
+    // så man stadig skal kigge efter dem.
+    this.input.keyboard?.on('keydown', (event: KeyboardEvent) => {
+      if (event.repeat) return;
+      const animal = this.keyedAnimals.get(event.key.toUpperCase());
+      if (animal && Phaser.Geom.Intersects.RectangleToRectangle(animal.sprite.getBounds(), cam.worldView)) {
+        animal.mark();
+      }
+    });
+
     this.scene.launch('LookoutUI');
   }
 
   update(_time: number, delta: number) {
     // Stop drejningen, hvis ingen finger er nede, fx hvis systemet afbrød berøringen
     if (!this.input.manager.pointers.some((p) => p.isDown)) this.panDirection = 0;
-    if (this.panDirection === 0) return;
+
+    const keys = this.cursors;
+    const dx = Math.sign(this.panDirection + Number(keys?.right.isDown) - Number(keys?.left.isDown));
+    const dy = Number(keys?.down.isDown) - Number(keys?.up.isDown);
+    if (dx === 0 && dy === 0) return;
     const cam = this.cameras.main;
-    cam.scrollX += (this.panDirection * PAN_SPEED * (delta / 1000)) / cam.zoom;
+    const step = (PAN_SPEED * (delta / 1000)) / cam.zoom;
+    cam.scrollX += dx * step;
+    cam.scrollY += dy * step;
   }
 
   setSpyglass(on: boolean) {
@@ -197,11 +223,11 @@ export class LookoutScene extends Phaser.Scene {
       ease: 'Sine.easeInOut',
     });
 
-    let found = false;
-    sprite.on('pointerup', (p: Phaser.Input.Pointer) => {
-      // Det var et træk for at kigge rundt, ikke et tryk på dyret
-      if (Phaser.Math.Distance.Between(p.downX, p.downY, p.upX, p.upY) > TAP_TOLERANCE) return;
+    const keyLabel = KEY_LABELS[this.keyedAnimals.size];
+    const label = keyLabel ? this.addKeyLabel(sprite, keyLabel, hitSize, y) : undefined;
 
+    let found = false;
+    const mark = () => {
       playAnimalSound(this, key);
       // Dyr hopper op; dovendyr gynger lidt ned i grenen
       this.tweens.add({
@@ -214,11 +240,38 @@ export class LookoutScene extends Phaser.Scene {
 
       if (found) return;
       found = true;
+      label?.setBackgroundColor('#ffd23f');
       this.add
         .text(x, hangs ? baseY + size * 1.15 : y - size * 1.2, '⭐', { fontSize: `${Math.max(14, size * 0.4)}px` })
         .setOrigin(0.5)
         .setDepth(y);
       this.events.emit('animal-found', key);
+    };
+
+    sprite.on('pointerup', (p: Phaser.Input.Pointer) => {
+      // Det var et træk for at kigge rundt, ikke et tryk på dyret
+      if (Phaser.Math.Distance.Between(p.downX, p.downY, p.upX, p.upY) > TAP_TOLERANCE) return;
+      mark();
     });
+    if (keyLabel) this.keyedAnimals.set(keyLabel, { sprite, mark });
+  }
+
+  // Lille skilt med tasten ved dyrets øverste venstre hjørne. Vises kun, hvor der er et tastatur.
+  private addKeyLabel(sprite: Phaser.GameObjects.Image, keyLabel: string, hitSize: number, depth: number) {
+    if (!this.sys.game.device.os.desktop) return undefined;
+    const fontSize = hitSize / 4;
+    const { left, top } = sprite.getBounds();
+    return this.add
+      .text(left, top, keyLabel, {
+        fontFamily: 'sans-serif',
+        fontSize: `${fontSize}px`,
+        fontStyle: 'bold',
+        color: '#222',
+        backgroundColor: '#fff',
+        padding: { x: fontSize * 0.3, y: fontSize * 0.1 },
+        resolution: SPYGLASS_ZOOM, // skarp, også når kikkerten zoomer ind
+      })
+      .setOrigin(0.5)
+      .setDepth(depth + 1);
   }
 }

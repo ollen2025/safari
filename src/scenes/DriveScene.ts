@@ -42,6 +42,7 @@ export class DriveScene extends Phaser.Scene {
   private arrivingHome = false;
   private kiosk?: Phaser.GameObjects.Container;
   private restartArmedUntil = 0;
+  private lookedHere = false; // man har allerede været ude ved dette stop og skal køre videre først
 
   private outside!: Phaser.GameObjects.Container;
   private animalLayer!: Phaser.GameObjects.Container;
@@ -76,9 +77,11 @@ export class DriveScene extends Phaser.Scene {
         this.abdul.say(line(LINES.backToSafari));
         this.drive(false);
       } else {
+        this.showStoppedButtons(true); // skjuler "gå ud", indtil bilen har kørt videre
         this.abdul.say(line(LINES.wake));
       }
     });
+    this.setupKeyboard();
     this.showIntro();
   }
 
@@ -156,14 +159,56 @@ export class DriveScene extends Phaser.Scene {
     }, 120).setDepth(51);
   }
 
+  // Mellemrum stopper bilen, og 1, 2, 3 vælger knapperne fra venstre: gå ud, is, kør videre.
+  // Tasterne trykker bare på knapperne, så de kun virker, når knappen er synlig.
+  private setupKeyboard() {
+    const keyboard = this.input.keyboard;
+    if (!keyboard) return;
+    keyboard.addCapture('SPACE');
+    const keys: Record<string, Phaser.GameObjects.Container> = {
+      ' ': this.stopButton,
+      '1': this.standButton,
+      '2': this.iceCreamButton,
+      '3': this.driveButton,
+    };
+    keyboard.on('keydown', (event: KeyboardEvent) => {
+      const button = keys[event.key];
+      if (!event.repeat && button?.visible) button.emit('pointerdown');
+    });
+
+    // Små skilte på knapperne med tasten. Vises kun, hvor der er et tastatur.
+    if (!this.sys.game.device.os.desktop) return;
+    const badges: [Phaser.GameObjects.Container, string][] = [
+      [this.stopButton, 'mellemrum'],
+      [this.standButton, '1'],
+      [this.iceCreamButton, '2'],
+      [this.driveButton, '3'],
+    ];
+    for (const [button, text] of badges) {
+      button.add(
+        this.add
+          .text(-58, -58, text, {
+            fontFamily: 'sans-serif',
+            fontSize: '24px',
+            fontStyle: 'bold',
+            color: '#222',
+            backgroundColor: '#fff',
+            padding: { x: 8, y: 2 },
+          })
+          .setOrigin(0.5),
+      );
+    }
+  }
+
   private showStoppedButtons(visible: boolean) {
-    this.standButton.setVisible(visible);
+    this.standButton.setVisible(visible && !this.lookedHere);
     this.iceCreamButton.setVisible(visible);
     this.driveButton.setVisible(visible);
   }
 
   private drive(announce = true) {
     this.state = 'driving';
+    this.lookedHere = false;
     this.showStoppedButtons(false);
     this.stopButton.setVisible(true);
     if (announce) this.abdul.say(line(LINES.drive));
@@ -227,6 +272,7 @@ export class DriveScene extends Phaser.Scene {
   }
 
   private standUp() {
+    this.lookedHere = true;
     this.scene.launch('Lookout', { seen: this.seenWhenStopped });
     this.scene.sleep();
   }
