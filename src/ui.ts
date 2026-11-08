@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { addAnimalImage } from './animalArt';
-import { ANIMAL_KEYS, getCounts, type AnimalKey } from './animals';
+import { animalsIn, getCounts, type AnimalKey, type WorldKey } from './animals';
 
 // Stor rund knap med en emoji. Hele firkanten omkring er trykbar, så små fingre rammer.
 export function makeButton(
@@ -54,19 +54,20 @@ interface Slot {
   shown: number;
 }
 
-// Række med alle dyrene øverst på skærmen og hvor mange man har fundet af hver.
+// Række med verdenens dyr øverst på skærmen og hvor mange man har fundet af hver.
 // Ikke-fundne dyr vises som grå silhuetter.
 export class CollectionBar {
   private readonly slots = new Map<AnimalKey, Slot>();
 
-  constructor(private readonly scene: Phaser.Scene, x: number, y: number) {
+  constructor(private readonly scene: Phaser.Scene, x: number, y: number, world: WorldKey) {
+    const keys = animalsIn(world);
     const spacing = 70;
-    const width = ANIMAL_KEYS.length * spacing + 20;
-    const startX = x - ((ANIMAL_KEYS.length - 1) * spacing) / 2;
+    const width = keys.length * spacing + 20;
+    const startX = x - ((keys.length - 1) * spacing) / 2;
 
     const bg = scene.add.graphics().fillStyle(0x000000, 0.35).fillRoundedRect(x - width / 2, y - 34, width, 68, 34);
     const container = scene.add.container(0, 0, [bg]).setDepth(20);
-    ANIMAL_KEYS.forEach((key, i) => {
+    keys.forEach((key, i) => {
       const slotX = startX + i * spacing;
       const icon = addAnimalImage(scene, key, slotX, y + 24, 50, 1);
       const label = scene.add

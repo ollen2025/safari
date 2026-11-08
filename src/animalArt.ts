@@ -5,8 +5,6 @@ import { ANIMALS, ANIMAL_KEYS, type AnimalKey } from './animals';
 // ved at erstatte filen. Ekstra udgaver af samme dyr hedder fx lion-2.svg (se `variants` i animals.ts).
 const SVG_SCALE = 2; // SVG'erne laves i dobbelt størrelse, så de er skarpe tæt på
 export const BABY_SCALE = 0.6;
-// Dyr der hænger (dovendyret) har grenen øverst i tegningen. Med denne origin er (x, y) grenen.
-export const HANG_ORIGIN_Y = 0.09;
 
 export function preloadIceCreamArt(scene: Phaser.Scene) {
   scene.load.svg('cone', 'assets/icecream/cone.svg', { scale: SVG_SCALE });

@@ -1,7 +1,8 @@
 import Phaser from 'phaser';
-import { addAnimalImage, BABY_SCALE, HANG_ORIGIN_Y, variedSize } from '../animalArt';
-import { ANIMALS, randomAnimal, type AnimalKey } from '../animals';
-import { drawAcacia, drawBush, drawHill, drawWaterhole } from '../scenery';
+import { addAnimalImage, BABY_SCALE, variedSize } from '../animalArt';
+import { ANIMALS, currentWorld, poseOf, randomAnimal, type AnimalKey, type WorldKey } from '../animals';
+import { LANDSCAPES, type Landscape } from '../landscapes';
+import { BRANCH, drawHill } from '../scenery';
 import { playAnimalSound } from '../sound';
 
 const WORLD_WIDTH = 3840;
@@ -28,15 +29,15 @@ interface KeyedAnimal {
   mark: () => void;
 }
 
-const DRINKERS: AnimalKey[] = ['elephant', 'zebra', 'buffalo', 'giraffe', 'gnu', 'gazelle'];
-
-// Spilleren står op i jeepen og kigger ud over savannen.
+// Spilleren står op i jeepen og kigger ud over landskabet.
 // Knapperne ligger i LookoutUIScene, så de ikke zoomer med, når kikkerten bruges.
 export class LookoutScene extends Phaser.Scene {
   panDirection = 0;
   private seen: AnimalKey[] = [];
   private keyedAnimals = new Map<string, KeyedAnimal>();
   private cursors?: Phaser.Types.Input.Keyboard.CursorKeys;
+  private world: WorldKey = 'safari';
+  private landscape!: Landscape;
 
   constructor() {
     super('Lookout');
@@ -47,6 +48,8 @@ export class LookoutScene extends Phaser.Scene {
     this.seen = data.seen ?? [];
     this.panDirection = 0;
     this.keyedAnimals = new Map();
+    this.world = currentWorld(this);
+    this.landscape = LANDSCAPES[this.world];
   }
 
   create() {
@@ -113,24 +116,25 @@ export class LookoutScene extends Phaser.Scene {
 
   private buildLandscape() {
     const { Between, FloatBetween } = Phaser.Math;
+    const land = this.landscape;
 
-    this.add.rectangle(WORLD_WIDTH / 2, HORIZON / 2, WORLD_WIDTH, HORIZON, 0x8fd3f4).setDepth(-10);
-    this.add.circle(WORLD_WIDTH / 2 + 450, 130, 55, 0xffd23f).setDepth(-10);
+    this.add.rectangle(WORLD_WIDTH / 2, HORIZON / 2, WORLD_WIDTH, HORIZON, land.sky).setDepth(-10);
+    if (land.sun) this.add.circle(WORLD_WIDTH / 2 + 450, 130, 55, 0xffd23f).setDepth(-10);
     for (let x = 0; x < WORLD_WIDTH + 400; x += Between(350, 550)) {
-      drawHill(this, x, HORIZON + 10, Between(500, 800), Between(100, 180), 0xb5c99a).setDepth(-9);
+      drawHill(this, x, HORIZON + 10, Between(500, 800), Between(100, 180), land.lookoutHill).setDepth(-9);
     }
-    this.add.rectangle(WORLD_WIDTH / 2, (HORIZON + 720) / 2, WORLD_WIDTH, 720 - HORIZON, 0xe9c46a).setDepth(-8);
+    this.add.rectangle(WORLD_WIDTH / 2, (HORIZON + 720) / 2, WORLD_WIDTH, 720 - HORIZON, land.ground).setDepth(-8);
     // Lysere, diset bånd langt væk
-    this.add.rectangle(WORLD_WIDTH / 2, HORIZON + 30, WORLD_WIDTH, 60, 0xf0d58c).setDepth(-7);
+    this.add.rectangle(WORLD_WIDTH / 2, HORIZON + 30, WORLD_WIDTH, 60, land.haze).setDepth(-7);
 
     // Alt i landskabet får depth = y, så det der står tættest på tegnes forrest
-    for (let i = 0; i < 14; i++) {
+    for (let i = 0; i < land.lookoutTrees; i++) {
       const far = Math.random() < 0.5;
       const y = far ? HORIZON + 45 : Between(450, 520);
-      drawAcacia(this, Between(0, WORLD_WIDTH), y, far ? 0.25 : FloatBetween(0.5, 0.7)).setDepth(y);
+      land.tree(this, Between(0, WORLD_WIDTH), y, far ? 0.25 : FloatBetween(0.5, 0.7)).setDepth(y);
     }
     for (let x = 100; x < WORLD_WIDTH; x += Between(400, 700)) {
-      drawBush(this, x, 700, FloatBetween(1, 1.4)).setDepth(700);
+      land.bush(this, x, 700, FloatBetween(1, 1.4)).setDepth(700);
     }
   }
 
@@ -144,7 +148,7 @@ export class LookoutScene extends Phaser.Scene {
       this.addAnimal(key, x, i === 0 ? 'near' : 'mid');
     });
     // Der skal altid være noget at se, når man rejser sig
-    if (this.seen.length === 0) this.addAnimal(randomAnimal(), center + Between(-300, 300), 'mid');
+    if (this.seen.length === 0) this.addAnimal(randomAnimal(this.world), center + Between(-300, 300), 'mid');
 
     // Vandhullet ligger lidt ude til siden, så man skal kigge rundt for at finde det
     const waterholeX = center + (Math.random() < 0.5 ? -1 : 1) * 700;
@@ -158,20 +162,24 @@ export class LookoutScene extends Phaser.Scene {
     );
     const extras: Distance[] = ['mid', 'far', 'far', 'far'];
     extras.forEach((distance, i) => {
-      const key = randomAnimal();
-      const herd = distance === 'far' && !ANIMALS[key].hangs ? Between(1, 3) : 1;
+      const key = randomAnimal(this.world);
+      const herd = distance === 'far' && poseOf(key) === 'ground' ? Between(1, 3) : 1;
       const x = slots[i] + Between(-40, 40);
       for (let j = 0; j < herd; j++) this.addAnimal(key, x + j * HERD_SPACING, distance, j > 0 && Math.random() < 0.4);
     });
   }
 
   private placeWaterhole(x: number) {
-    drawWaterhole(this, x, WATERHOLE_Y, 520, 90).setDepth(WATERHOLE_Y - 10);
-    this.addAnimalAt('hippo', x - 60 + Phaser.Math.Between(-40, 40), WATERHOLE_Y + 10, 110, 120, 0.55);
-    // Nogle gange lurer der en krokodille, hvor kun øjne og ryg stikker op
-    if (Math.random() < 0.6) this.addAnimalAt('crocodile', x + 110, WATERHOLE_Y + 16, 160, 120, 0.45);
+    const land = this.landscape;
+    land.water(this, x, WATERHOLE_Y, 520, 90).setDepth(WATERHOLE_Y - 10);
+    // Dyr i vandet, hvor kun hoved og ryg stikker op (flodheste, krokodiller)
+    for (const s of land.swimmers) {
+      if (Math.random() >= s.chance) continue;
+      const jitter = s.chance === 1 ? Phaser.Math.Between(-40, 40) : 0;
+      this.addAnimalAt(s.key, x + s.dx + jitter, WATERHOLE_Y + s.dy, s.size, 120, s.waterline);
+    }
     // Et dyr drikker ved den anden bred
-    this.addAnimalAt(Phaser.Utils.Array.GetRandom(DRINKERS), x + 170, WATERHOLE_Y - 40, 90, 120);
+    this.addAnimalAt(Phaser.Utils.Array.GetRandom(land.drinkers), x + 170, WATERHOLE_Y - 40, 90, 120);
   }
 
   private addAnimal(key: AnimalKey, x: number, distance: Distance, baby = false) {
@@ -181,8 +189,11 @@ export class LookoutScene extends Phaser.Scene {
 
   // (x, y) er hvor dyret står. `waterline` er hvor stor en del af dyret der stikker op af vandet.
   private addAnimalAt(key: AnimalKey, x: number, y: number, size: number, hitSize: number, waterline?: number) {
-    const hangs = ANIMALS[key].hangs ?? false;
-    const sprite = addAnimalImage(this, key, x, y, size).setDepth(y).setFlipX(Math.random() < 0.5);
+    const pose = poseOf(key);
+    const hangs = pose === 'hang';
+    // Dyr i træer tegnes mindre end træet, hvis de er små (fugle)
+    const animalSize = pose === 'ground' ? size : size * (ANIMALS[key].scale ?? 1);
+    const sprite = addAnimalImage(this, key, x, y, animalSize).setDepth(y).setFlipX(Math.random() < 0.5);
 
     // Trykområdet er mindst hitSize stort og centreret på dyret. Det angives i billedets egne
     // (uskalerede) koordinater, derfor divideres med skalaen.
@@ -206,12 +217,12 @@ export class LookoutScene extends Phaser.Scene {
       baseY = y + sprite.height * (1 - waterline) * sprite.scaleY;
       sprite.setY(baseY);
     }
-    if (hangs) {
-      // Hænger i et akacietræ, der står hvor dyret ellers ville stå
+    if (pose !== 'ground') {
+      // Hænger i eller sidder på grenen af et træ, der står hvor dyret ellers ville stå
       const treeScale = size / 80;
-      drawAcacia(this, x - 45 * treeScale, y, treeScale).setDepth(y - 1);
-      baseY = y - 118 * treeScale;
-      sprite.setOrigin(0.5, HANG_ORIGIN_Y).setY(baseY);
+      this.landscape.tree(this, x - BRANCH.x * treeScale, y, treeScale).setDepth(y - 1);
+      baseY = y + BRANCH.y * treeScale;
+      sprite.setOrigin(0.5, ANIMALS[key].anchorY ?? 1).setY(baseY);
     }
 
     this.tweens.add({
@@ -229,10 +240,10 @@ export class LookoutScene extends Phaser.Scene {
     let found = false;
     const mark = () => {
       playAnimalSound(this, key);
-      // Dyr hopper op; dovendyr gynger lidt ned i grenen
+      // Dyr hopper op; dyr der hænger, gynger lidt ned i grenen
       this.tweens.add({
         targets: sprite,
-        y: { from: baseY, to: baseY + (hangs ? size * 0.15 : -size * 0.4) },
+        y: { from: baseY, to: baseY + (hangs ? animalSize * 0.15 : -animalSize * 0.4) },
         duration: 180,
         yoyo: true,
         ease: 'Quad.easeOut',
@@ -241,8 +252,11 @@ export class LookoutScene extends Phaser.Scene {
       if (found) return;
       found = true;
       label?.setBackgroundColor('#ffd23f');
+      // Stjernen kommer over dyret, eller under det, hvis det hænger
+      const bounds = sprite.getBounds();
+      const starSize = Math.max(14, animalSize * 0.4);
       this.add
-        .text(x, hangs ? baseY + size * 1.15 : y - size * 1.2, '⭐', { fontSize: `${Math.max(14, size * 0.4)}px` })
+        .text(x, hangs ? bounds.bottom + starSize * 0.6 : bounds.top - starSize * 0.6, '⭐', { fontSize: `${starSize}px` })
         .setOrigin(0.5)
         .setDepth(y);
       this.events.emit('animal-found', key);

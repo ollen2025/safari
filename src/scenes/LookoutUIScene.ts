@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 import { Abdul } from '../abdul';
 import { addAnimalImage } from '../animalArt';
-import { ANIMALS, ANIMAL_KEYS, countAnimal, getCounts, type AnimalKey } from '../animals';
+import { ANIMALS, animalsIn, countAnimal, currentWorld, getCounts, type AnimalKey } from '../animals';
 import { line, LINES } from '../lines';
 import { CollectionBar, makeBigNumber, makeButton, popIn } from '../ui';
 import type { LookoutScene } from './LookoutScene';
@@ -24,7 +24,7 @@ export class LookoutUIScene extends Phaser.Scene {
 
     const abdul = new Abdul(this, 300, 640, 0.55);
     const overlay = this.add.image(640, 360, this.spyglassTexture()).setDepth(15).setVisible(false);
-    new CollectionBar(this, 640, 45);
+    new CollectionBar(this, 640, 45, currentWorld(this));
 
     makeButton(this, 110, 620, '🚙', 0x52b788, () => this.sitDown(), 75);
     makeButton(this, 1170, 620, '🔭', 0xe76f51, () => {
@@ -39,7 +39,7 @@ export class LookoutUIScene extends Phaser.Scene {
     const onFound = (key: AnimalKey) => {
       const count = countAnimal(this, key);
       const counts = getCounts(this);
-      const foundAll = ANIMAL_KEYS.every((k) => (counts[k] ?? 0) > 0);
+      const foundAll = animalsIn(currentWorld(this)).every((k) => (counts[k] ?? 0) > 0);
       this.showCount(key, count);
 
       let text = line(LINES.foundMore, { n: count, plural: ANIMALS[key].plural });

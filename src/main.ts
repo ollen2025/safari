@@ -4,6 +4,7 @@ import { DriveScene } from './scenes/DriveScene';
 import { IceCreamScene } from './scenes/IceCreamScene';
 import { LookoutScene } from './scenes/LookoutScene';
 import { LookoutUIScene } from './scenes/LookoutUIScene';
+import { MenuScene } from './scenes/MenuScene';
 
 new Phaser.Game({
   type: Phaser.AUTO,
@@ -16,5 +17,5 @@ new Phaser.Game({
     autoCenter: Phaser.Scale.CENTER_BOTH,
   },
   // Kun den første scene starter automatisk. Rækkefølgen bestemmer også, hvilken scene der tegnes øverst.
-  scene: [BootScene, DriveScene, LookoutScene, LookoutUIScene, IceCreamScene],
+  scene: [BootScene, MenuScene, DriveScene, LookoutScene, LookoutUIScene, IceCreamScene],
 });

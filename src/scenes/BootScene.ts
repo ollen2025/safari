@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 import { preloadAnimalArt, preloadIceCreamArt } from '../animalArt';
 import { preloadAnimalSounds } from '../sound';
 
-// Indlæser tegninger og lyde og nulstiller spillets fælles data, før safarien starter
+// Indlæser tegninger og lyde og nulstiller spillets fælles data, før startmenuen vises
 export class BootScene extends Phaser.Scene {
   constructor() {
     super('Boot');
@@ -16,6 +16,6 @@ export class BootScene extends Phaser.Scene {
 
   create() {
     this.registry.set('counts', {});
-    this.scene.start('Drive');
+    this.scene.start('Menu');
   }
 }

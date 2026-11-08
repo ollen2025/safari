@@ -3,6 +3,7 @@
 Et simpelt safari-spil til små børn (ca. 4 år). Gameplay og glæde kommer før grafik.
 
 ## Spillet
+- Spillet starter i en **startmenu**: postkort, der hænger på en snor i solnedgangen. Man vælger, hvor turen går hen. **Safari** og **jungle** er klar; isen, Australien, under vandet og dinosaurer er pladsholdere med en hængelås (Abdul siger, at de kommer snart). På tastatur vælges kortene med **1** til **6**. 🏠 i safarien fører tilbage til menuen.
 - Spilleren sidder i en jeep og kigger ud ad vinduet, mens savannen kører forbi.
 - Chaufføren hedder **Abdul**. Han snakker (browserens oplæser) og viser en taleboble.
 - Ser man et dyr, trykker man på den røde ✋-knap (eller direkte på dyret), og Abdul stopper.
@@ -11,7 +12,8 @@ Et simpelt safari-spil til små børn (ca. 4 år). Gameplay og glæde kommer fø
 - Med **kikkerten** 🔭 kan man se dyr langt væk. På tastatur styres udsigten og kikkerten med piletasterne.
 - På tastatur har hvert dyr et lille skilt med et tal eller bogstav. Tryk på tasten for at markere dyret, når det er i billedet.
 - Trykker man på et dyr, siger det sin **dyrelyd** og bliver **talt** (stort tal på skærmen, og Abdul siger fx "Nu har du fundet 3 zebraer!"). Samlingen øverst viser, hvor mange man har fundet af hvert dyr.
-- Dyr: elefant, giraf, zebra, løve (han og hun), bavian, flodhest, næsehorn, bøffel, struds, hyæne, gazelle, gnu, krokodille og dovendyr (hænger i et træ). Nogle gange er der en unge med. Der er også **vandhuller** med flodheste og krokodiller.
+- Dyr på savannen: elefant, giraf, zebra, løve (han og hun), bavian, flodhest, næsehorn, bøffel, struds, hyæne, gazelle, gnu og krokodille. Nogle gange er der en unge med. Der er også **vandhuller** med flodheste og krokodiller.
+- Dyr i junglen: tiger, træleopard, puma, slange, okapi, gorilla, chimpanse, papegøje, tukan og dovendyr. Nogle af dem hænger i eller sidder på grenene i træerne, og der er skovsøer.
 - Når bilen holder, kan man køre hen til **iskiosken** 🍦: Tryk kugler på isen (Abdul tæller op til 5), og spis den bagefter.
 - Abdul har flere sætninger til hver situation (`src/lines.ts`), så han ikke siger det samme hele tiden.
 - 🔄 i øverste hjørne starter forfra (nulstiller fundne dyr). Den skal trykkes to gange, så den ikke rammes ved et uheld.
@@ -24,18 +26,21 @@ Et simpelt safari-spil til små børn (ca. 4 år). Gameplay og glæde kommer fø
 ## Kode-overblik
 | Fil | Indhold |
 |---|---|
+| `src/scenes/MenuScene.ts` | Startmenuen, hvor man vælger verden |
+| `src/worlds.ts` | Verdenerne i menuen og tegningerne på deres kort |
 | `src/scenes/DriveScene.ts` | Inde i jeepen: landskab der kører forbi, stop/kør |
 | `src/scenes/LookoutScene.ts` | Stående: bred savanne, dyr på forskellige afstande, kikkert-zoom |
 | `src/scenes/LookoutUIScene.ts` | Knapper, kikkert-ramme og tælling oven på LookoutScene |
 | `src/scenes/IceCreamScene.ts` | Iskiosken: byg og spis en is |
 | `src/scenes/BootScene.ts` | Indlæser lyde, før spillet starter |
 | `src/abdul.ts` | Abdul: tegning, tale og taleboble |
-| `src/animals.ts` | Dyrene (navne, flertal) og tælling af fundne dyr |
+| `src/animals.ts` | Dyrene (verden, navne, flertal, om de er i træer) og tælling af fundne dyr |
+| `src/landscapes.ts` | Hver verdens landskab: farver, træer, vand og hvilke dyr der drikker/svømmer |
 | `src/lines.ts` | Abduls replikker |
 | `src/animalArt.ts` | Indlæsning af dyretegningerne, unger og størrelsesvariation |
 | `src/sound.ts` | Afspilning af dyrelyde og Abduls stemme |
 | `src/ui.ts` | Knapper og samlings-bjælken |
-| `src/scenery.ts` | Træer, buske, bakker, vandhuller og iskiosk |
+| `src/scenery.ts` | Træer, buske, bakker, vandhuller, skovsøer og iskiosk |
 
 ## Tech stack
 - **TypeScript** som sprog

@@ -1,9 +1,10 @@
 import Phaser from 'phaser';
 import { Abdul } from '../abdul';
-import { addAnimalImage, BABY_SCALE, HANG_ORIGIN_Y, variedSize } from '../animalArt';
-import { ANIMALS, randomAnimal, type AnimalKey } from '../animals';
+import { addAnimalImage, BABY_SCALE, variedSize } from '../animalArt';
+import { ANIMALS, currentWorld, poseOf, randomAnimal, type AnimalKey, type WorldKey } from '../animals';
+import { LANDSCAPES, type Landscape } from '../landscapes';
 import { line, LINES } from '../lines';
-import { drawAcacia, drawBush, drawHill, drawKiosk, drawWaterhole } from '../scenery';
+import { BRANCH, drawHill, drawKiosk } from '../scenery';
 import { CollectionBar, makeButton } from '../ui';
 
 const CRUISE_SPEED = 200; // px/s for det nærmeste lag
@@ -15,7 +16,7 @@ const WINDOW = { left: 40, right: 1240, top: 80, bottom: 510 };
 const HOME_DRIVE_SECONDS = 4; // så længe kører man, før iskiosken dukker op
 const RESTART_CONFIRM_MS = 4000; // "start forfra" kræver to tryk inden for denne tid
 
-type DriveState = 'intro' | 'driving' | 'homeward' | 'stopping' | 'stopped';
+type DriveState = 'driving' | 'homeward' | 'stopping' | 'stopped';
 
 // Et lag af landskabet, der kører forbi med sin egen fart (parallax)
 interface ScrollLayer {
@@ -27,12 +28,12 @@ interface ScrollLayer {
 interface PassingAnimal {
   key: AnimalKey;
   sprite: Phaser.GameObjects.Image;
-  tree?: Phaser.GameObjects.Graphics; // træet som dovendyret hænger i
+  tree?: Phaser.GameObjects.Graphics; // træet som dyret hænger i eller sidder i
 }
 
 // Spilleren sidder i jeepen og kigger ud ad sidevinduet
 export class DriveScene extends Phaser.Scene {
-  private state: DriveState = 'intro';
+  private state: DriveState = 'driving';
   private speed = 0;
   private layers: ScrollLayer[] = [];
   private animals: PassingAnimal[] = [];
@@ -44,6 +45,8 @@ export class DriveScene extends Phaser.Scene {
   private restartArmedUntil = 0;
   private lookedHere = false; // man har allerede været ude ved dette stop og skal køre videre først
 
+  private world: WorldKey = 'safari';
+  private landscape!: Landscape;
   private outside!: Phaser.GameObjects.Container;
   private animalLayer!: Phaser.GameObjects.Container;
   private abdul!: Abdul;
@@ -57,12 +60,28 @@ export class DriveScene extends Phaser.Scene {
   }
 
   create() {
+    // Scenen genbruges, når man kommer tilbage fra startmenuen, så alt nulstilles her
+    this.state = 'driving';
+    this.speed = 0;
+    this.layers = [];
+    this.animals = [];
+    this.nextSpawn = 1.5;
+    this.seenWhenStopped = [];
+    this.homewardTime = 0;
+    this.arrivingHome = false;
+    this.kiosk = undefined;
+    this.restartArmedUntil = 0;
+    this.lookedHere = false;
+    this.world = currentWorld(this);
+    this.landscape = LANDSCAPES[this.world];
+    this.cameras.main.fadeIn(500);
+
     this.outside = this.add.container(0, 0);
     this.buildLandscape();
     this.buildInterior();
 
     this.abdul = new Abdul(this, 150, 620, 0.75);
-    new CollectionBar(this, 640, 40);
+    new CollectionBar(this, 640, 40, this.world);
 
     this.stopButton = makeButton(this, 1110, 615, '✋', 0xd62828, () => this.brake()).setVisible(false);
     this.standButton = makeButton(this, 690, 615, '🧍', 0x2a9d8f, () => this.standUp()).setVisible(false);
@@ -70,7 +89,10 @@ export class DriveScene extends Phaser.Scene {
     this.driveButton = makeButton(this, 1110, 615, '🚙', 0x52b788, () => this.drive()).setVisible(false);
     // Lille knap i hjørnet, så den ikke trykkes på ved et uheld
     const restartButton = makeButton(this, 1222, 40, '🔄', 0xffffff, () => this.restart(restartButton), 32);
+    makeButton(this, 58, 40, '🏠', 0xffffff, () => this.goToMenu(), 32);
 
+    // Scenens events overlever en genstart, så lytteren fjernes igen, når scenen lukkes
+    this.events.once('shutdown', () => this.events.off('wake'));
     this.events.on('wake', (_sys: Phaser.Scenes.Systems, data?: { from?: string }) => {
       if (data?.from === 'icecream') {
         this.cameras.main.fadeIn(400);
@@ -82,7 +104,9 @@ export class DriveScene extends Phaser.Scene {
       }
     });
     this.setupKeyboard();
-    this.showIntro();
+    // Man har lige trykket på safari-kortet, så browseren må gerne tale
+    this.abdul.say(line(this.landscape.intro));
+    this.drive(false);
   }
 
   update(time: number, delta: number) {
@@ -146,17 +170,10 @@ export class DriveScene extends Phaser.Scene {
     this.outside.y = Math.sin(time / 80) * 3 * (this.speed / CRUISE_SPEED);
   }
 
-  private showIntro() {
-    const dim = this.add.rectangle(640, 360, 1280, 720, 0x000000, 0.5).setDepth(50);
-    const play = makeButton(this, 640, 360, '▶️', 0x52b788, () => {
-      if (this.state !== 'intro') return;
-      this.abdul.say(line(LINES.intro));
-      this.drive(false);
-      this.time.delayedCall(200, () => {
-        dim.destroy();
-        play.destroy();
-      });
-    }, 120).setDepth(51);
+  private goToMenu() {
+    if (this.cameras.main.fadeEffect.isRunning) return; // dobbelttryk eller allerede på vej til is
+    this.cameras.main.fadeOut(400);
+    this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => this.scene.start('Menu'));
   }
 
   // Mellemrum stopper bilen, og 1, 2, 3 vælger knapperne fra venstre: gå ud, is, kør videre.
@@ -278,9 +295,9 @@ export class DriveScene extends Phaser.Scene {
   }
 
   private spawnAnimal() {
-    const key = randomAnimal();
-    if (ANIMALS[key].hangs) {
-      this.spawnHangingAnimal(key);
+    const key = randomAnimal(this.world);
+    if (poseOf(key) !== 'ground') {
+      this.spawnTreeAnimal(key);
       return;
     }
     const count = Math.random() < 0.3 ? 2 : 1;
@@ -296,21 +313,24 @@ export class DriveScene extends Phaser.Scene {
     }
   }
 
-  // Dovendyret hænger i et træ, der kører forbi sammen med det
-  private spawnHangingAnimal(key: AnimalKey) {
+  // Dyr i træer (dovendyr, slanger, fugle ...) kører forbi sammen med deres træ
+  private spawnTreeAnimal(key: AnimalKey) {
     const groundY = Phaser.Math.Between(450, 480);
-    const tree = drawAcacia(this, 1400, groundY, 1);
-    const sprite = addAnimalImage(this, key, 1445, groundY - 118, variedSize(80)).setOrigin(0.5, HANG_ORIGIN_Y);
+    const tree = this.landscape.tree(this, 1400, groundY, 1);
+    const { anchorY = 1, scale = 1 } = ANIMALS[key];
+    const sprite = addAnimalImage(this, key, 1400 + BRANCH.x, groundY + BRANCH.y, variedSize(80) * scale);
+    sprite.setOrigin(0.5, anchorY);
     sprite.setInteractive({ useHandCursor: true }).on('pointerdown', () => this.brake());
     this.animalLayer.add([tree, sprite]);
     this.animals.push({ key, sprite, tree });
   }
 
   private buildLandscape() {
-    const sky = this.add.rectangle(640, (HORIZON - 20) / 2, 1280, HORIZON + 20, 0x8fd3f4);
-    const sun = this.add.circle(1050, 150, 55, 0xffd23f);
+    const land = this.landscape;
+    const sky = this.add.rectangle(640, (HORIZON - 20) / 2, 1280, HORIZON + 20, land.sky);
+    const sun = this.add.circle(1050, 150, 55, 0xffd23f).setVisible(land.sun);
     const hills = this.add.container(0, 0);
-    const ground = this.add.rectangle(640, (HORIZON + 740) / 2, 1280, 740 - HORIZON, 0xe9c46a);
+    const ground = this.add.rectangle(640, (HORIZON + 740) / 2, 1280, 740 - HORIZON, land.ground);
     const trees = this.add.container(0, 0);
     const water = this.add.container(0, 0);
     this.animalLayer = this.add.container(0, 0);
@@ -318,10 +338,12 @@ export class DriveScene extends Phaser.Scene {
     this.outside.add([sky, sun, hills, ground, trees, water, this.animalLayer, bushes]);
 
     const { Between, FloatBetween } = Phaser.Math;
-    this.addLayer(hills, 5, 2100, 0.15, (x) => drawHill(this, x, HORIZON + 10, Between(500, 800), Between(120, 200)));
-    this.addLayer(trees, 4, 2400, 0.4, (x) => drawAcacia(this, x, HORIZON + 40, FloatBetween(0.8, 1.1)));
-    this.addLayer(water, 1, 2600, 0.6, (x) => drawWaterhole(this, x + 1000, 440, 360, 60));
-    this.addLayer(bushes, 6, 1900, 1.3, (x) => drawBush(this, x, 510, FloatBetween(1, 1.3)));
+    this.addLayer(hills, 5, 2100, 0.15, (x) =>
+      drawHill(this, x, HORIZON + 10, Between(500, 800), Between(120, 200), land.hill),
+    );
+    this.addLayer(trees, land.driveTrees, 2400, 0.4, (x) => land.tree(this, x, HORIZON + 40, FloatBetween(0.8, 1.1)));
+    this.addLayer(water, 1, 2600, 0.6, (x) => land.water(this, x + 1000, 440, 360, 60));
+    this.addLayer(bushes, 6, 1900, 1.3, (x) => land.bush(this, x, 510, FloatBetween(1, 1.3)));
   }
 
   private addLayer(
