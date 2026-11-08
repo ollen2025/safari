@@ -12,6 +12,10 @@ export const LINES = {
     'Turen til {name} er ikke klar endnu. Vælg en anden tur!',
     'Uh, {name}! Det bliver spændende. Men ikke i dag!',
   ],
+  introIce: [
+    'Brr, hvor er her koldt! Tryk på den røde knap, når du ser et dyr!',
+    'Velkommen til isen! Kig efter dyr i sneen og i vandet!',
+  ],
   introJungle: [
     'Velkommen til junglen! Tryk på den røde knap, når du ser et dyr!',
     'Så kører vi ind i junglen! Kig godt efter, nogle dyr er oppe i træerne!',

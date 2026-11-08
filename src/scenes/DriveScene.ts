@@ -4,7 +4,7 @@ import { addAnimalImage, BABY_SCALE, variedSize } from '../animalArt';
 import { ANIMALS, currentWorld, poseOf, randomAnimal, type AnimalKey, type WorldKey } from '../animals';
 import { LANDSCAPES, type Landscape } from '../landscapes';
 import { line, LINES } from '../lines';
-import { BRANCH, drawHill, drawKiosk } from '../scenery';
+import { addSnowfall, BRANCH, drawHill, drawKiosk } from '../scenery';
 import { CollectionBar, makeButton } from '../ui';
 
 const CRUISE_SPEED = 200; // px/s for det nærmeste lag
@@ -296,7 +296,7 @@ export class DriveScene extends Phaser.Scene {
 
   private spawnAnimal() {
     const key = randomAnimal(this.world);
-    if (poseOf(key) !== 'ground') {
+    if (poseOf(key) === 'hang' || poseOf(key) === 'perch') {
       this.spawnTreeAnimal(key);
       return;
     }
@@ -304,7 +304,7 @@ export class DriveScene extends Phaser.Scene {
     for (let i = 0; i < count; i++) {
       // Den anden i et par er nogle gange en unge
       const baby = i > 0 && Math.random() < 0.5;
-      const size = variedSize(110) * (baby ? BABY_SCALE : 1);
+      const size = variedSize(110) * (baby ? BABY_SCALE : 1) * (ANIMALS[key].scale ?? 1);
       const sprite = addAnimalImage(this, key, 1400 + i * 130, Phaser.Math.Between(440, 480), size);
       // Små børn trykker på dyret i stedet for stopknappen, så det stopper også bilen
       sprite.setInteractive({ useHandCursor: true }).on('pointerdown', () => this.brake());
@@ -336,6 +336,10 @@ export class DriveScene extends Phaser.Scene {
     this.animalLayer = this.add.container(0, 0);
     const bushes = this.add.container(0, 0);
     this.outside.add([sky, sun, hills, ground, trees, water, this.animalLayer, bushes]);
+    if (land.snow) {
+      const { left, right, top, bottom } = WINDOW;
+      this.outside.add(addSnowfall(this, { x: left, y: top - 20, width: right - left, height: bottom - top + 20 }));
+    }
 
     const { Between, FloatBetween } = Phaser.Math;
     this.addLayer(hills, 5, 2100, 0.15, (x) =>

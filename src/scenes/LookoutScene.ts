@@ -191,8 +191,8 @@ export class LookoutScene extends Phaser.Scene {
   private addAnimalAt(key: AnimalKey, x: number, y: number, size: number, hitSize: number, waterline?: number) {
     const pose = poseOf(key);
     const hangs = pose === 'hang';
-    // Dyr i træer tegnes mindre end træet, hvis de er små (fugle)
-    const animalSize = pose === 'ground' ? size : size * (ANIMALS[key].scale ?? 1);
+    // Små dyr (fugle, pingviner, ræve) tegnes mindre. Træet får dyrets normale størrelse.
+    const animalSize = size * (ANIMALS[key].scale ?? 1);
     const sprite = addAnimalImage(this, key, x, y, animalSize).setDepth(y).setFlipX(Math.random() < 0.5);
 
     // Trykområdet er mindst hitSize stort og centreret på dyret. Det angives i billedets egne
@@ -217,7 +217,7 @@ export class LookoutScene extends Phaser.Scene {
       baseY = y + sprite.height * (1 - waterline) * sprite.scaleY;
       sprite.setY(baseY);
     }
-    if (pose !== 'ground') {
+    if (pose === 'hang' || pose === 'perch') {
       // Hænger i eller sidder på grenen af et træ, der står hvor dyret ellers ville stå
       const treeScale = size / 80;
       this.landscape.tree(this, x - BRANCH.x * treeScale, y, treeScale).setDepth(y - 1);

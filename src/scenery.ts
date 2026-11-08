@@ -80,3 +80,57 @@ export function drawPond(scene: Phaser.Scene, x: number, y: number, width: numbe
   g.fillStyle(0xf4a6c1).fillCircle(width * 0.2, height * 0.08, 5);
   return g;
 }
+
+// Klippe med sne på toppen og en hylde (ved BRANCH), hvor fugle kan sidde
+export function drawIceRock(scene: Phaser.Scene, x: number, y: number, scale = 1) {
+  const g = scene.add.graphics({ x, y });
+  g.fillStyle(0x6c7a89).fillTriangle(-70, 0, -30, -190, 20, 0).fillTriangle(-10, 0, 20, -150, 60, 0);
+  g.fillStyle(0x8d99ae).fillTriangle(-50, 0, -30, -190, -5, 0);
+  g.fillStyle(0x6c7a89).fillRect(0, -118, 80, 26);
+  g.fillStyle(0xffffff).fillRect(-4, -124, 86, 8).fillEllipse(78, -120, 14, 12);
+  g.fillStyle(0xffffff).fillTriangle(-42, -150, -30, -190, -18, -150);
+  return g.setScale(scale);
+}
+
+// Snedrive og isklumper
+export function drawSnowDrift(scene: Phaser.Scene, x: number, y: number, scale = 1) {
+  const g = scene.add.graphics({ x, y });
+  g.fillStyle(0xdbeef7).fillEllipse(-30, 0, 130, 60).fillEllipse(40, -6, 120, 70);
+  g.fillStyle(0xffffff).fillEllipse(-36, -8, 100, 40).fillEllipse(36, -16, 90, 44);
+  g.fillStyle(0xa9d6e5).fillTriangle(70, 0, 90, -40, 110, 0);
+  return g.setScale(scale);
+}
+
+// Hul i isen med mørkt, koldt vand
+export function drawIceHole(scene: Phaser.Scene, x: number, y: number, width: number, height: number) {
+  const g = scene.add.graphics({ x, y });
+  g.fillStyle(0xffffff).fillEllipse(0, 0, width + 40, height + 24);
+  g.fillStyle(0xa9d6e5).fillEllipse(0, 2, width + 10, height + 6);
+  g.fillStyle(0x1d6fa3).fillEllipse(0, 0, width, height);
+  g.fillStyle(0x4ea8de).fillEllipse(-width * 0.15, -height * 0.15, width * 0.45, height * 0.3);
+  return g;
+}
+
+// Sne der falder stille ned inden for et område. Flagerne starter forfra i toppen, når de når bunden.
+export function addSnowfall(scene: Phaser.Scene, area: { x: number; y: number; width: number; height: number }, count = 60) {
+  const flakes: Phaser.GameObjects.Arc[] = [];
+  for (let i = 0; i < count; i++) {
+    const flake = scene.add.circle(0, 0, Phaser.Math.FloatBetween(2, 4.5), 0xffffff, 0.9);
+    const speed = Phaser.Math.FloatBetween(0.06, 0.12); // px pr. millisekund
+    // Første gang starter flagen et tilfældigt sted på vejen ned, så de ikke alle starter i toppen
+    const fall = (startY: number) => {
+      const x = area.x + Phaser.Math.Between(0, area.width);
+      flake.setPosition(x, startY);
+      scene.tweens.add({
+        targets: flake,
+        y: area.y + area.height,
+        x: x + Phaser.Math.Between(-50, 50),
+        duration: (area.y + area.height - startY) / speed,
+        onComplete: () => fall(area.y),
+      });
+    };
+    fall(area.y + Phaser.Math.Between(0, area.height));
+    flakes.push(flake);
+  }
+  return flakes;
+}

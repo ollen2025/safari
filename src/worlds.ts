@@ -66,6 +66,7 @@ export const WORLDS: WorldDef[] = [
     title: 'Isen',
     spokenName: 'isen',
     emoji: '🐧',
+    play: 'ice',
     paint: (g, p) => {
       top(g, p, p.h * 0.65, 0xcaf0f8);
       bottom(g, p, p.h * 0.35, 0x48cae4);

@@ -2,7 +2,9 @@ import Phaser from 'phaser';
 import { Abdul } from '../abdul';
 import { addAnimalImage } from '../animalArt';
 import { ANIMALS, animalsIn, countAnimal, currentWorld, getCounts, type AnimalKey } from '../animals';
+import { LANDSCAPES } from '../landscapes';
 import { line, LINES } from '../lines';
+import { addSnowfall } from '../scenery';
 import { CollectionBar, makeBigNumber, makeButton, popIn } from '../ui';
 import type { LookoutScene } from './LookoutScene';
 
@@ -21,6 +23,11 @@ export class LookoutUIScene extends Phaser.Scene {
 
     // Jeepens forkant, som spilleren står i
     this.add.graphics().fillStyle(0x2f3720).fillRect(0, 652, 1280, 10).fillStyle(0x4a5530).fillRect(0, 660, 1280, 60);
+
+    // Sneen falder i skærmens koordinater, så den ikke zoomer med kikkerten
+    if (LANDSCAPES[currentWorld(this)].snow) {
+      addSnowfall(this, { x: 0, y: -10, width: 1280, height: 670 }, 80).forEach((f) => f.setDepth(5));
+    }
 
     const abdul = new Abdul(this, 300, 640, 0.55);
     const overlay = this.add.image(640, 360, this.spyglassTexture()).setDepth(15).setVisible(false);
