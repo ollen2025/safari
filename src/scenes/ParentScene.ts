@@ -13,14 +13,7 @@ const DEFAULT_GOAL = 3;
 const MAX_GOAL = 20;
 const ANIMALS_PER_ROW = 7;
 const FONT = { fontFamily: 'sans-serif', fontStyle: 'bold', color: '#fff' };
-
-interface MathProblem {
-  question: Phaser.GameObjects.Text;
-  display: Phaser.GameObjects.Text;
-  answer: string;
-  typed: string;
-  onSolved: () => void;
-}
+const MATH_X = 880;
 
 function formatTime(ms: number) {
   const seconds = Math.max(0, Math.ceil(ms / 1000));
@@ -40,7 +33,8 @@ export class ParentScene extends Phaser.Scene {
   private status!: Phaser.GameObjects.Text;
   private screen?: Phaser.GameObjects.Container;
   private abdul?: Abdul;
-  private math?: MathProblem;
+  private pressKey?: (key: string) => void; // sat, mens et regnestykke vises
+  private settingsOpen = false;
   private readonly pausedScenes = new Set<string>();
 
   constructor() {
@@ -60,7 +54,10 @@ export class ParentScene extends Phaser.Scene {
       .setOrigin(0.5)
       .setDepth(20);
 
-    this.game.events.on(ANIMAL_COUNTED, (key: AnimalKey) => this.onAnimalCounted(key));
+    const onCounted = (key: AnimalKey) => this.onAnimalCounted(key);
+    this.game.events.on(ANIMAL_COUNTED, onCounted);
+    // game.events lever videre, hvis scenen genstartes, så lytteren skal fjernes igen
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.game.events.off(ANIMAL_COUNTED, onCounted));
     this.input.keyboard?.on('keydown', (event: KeyboardEvent) => this.onKey(event));
     if (this.state.locked) this.lock();
   }
@@ -70,7 +67,8 @@ export class ParentScene extends Phaser.Scene {
     if (this.screen) this.pauseGame();
 
     const { limit, locked } = this.state;
-    if (limit?.kind === 'time' && !locked && Date.now() >= limit.endsAt) this.lock();
+    // Ikke mens en voksen er i gang med at ændre aftalen. Låsen kommer, når indstillingerne lukkes.
+    if (limit?.kind === 'time' && !locked && !this.settingsOpen && Date.now() >= limit.endsAt) this.lock();
     this.refreshStatus();
   }
 
@@ -86,33 +84,33 @@ export class ParentScene extends Phaser.Scene {
     const { limit, locked } = this.state;
     if (limit?.kind !== 'goal' || locked) return;
     if (limit.animal !== ANY_ANIMAL && limit.animal !== key) return;
-    limit.found++;
-    if (limit.found >= limit.target) {
-      // Låsen gemmes med det samme, så forsinkelsen ikke kan bruges til at slippe uden om den
-      this.state.locked = true;
-      this.time.delayedCall(LOCK_DELAY_MS, () => this.lock());
-    }
-    saveParentState(this.state);
+    const found = limit.found + 1;
+    // Låsen gemmes med det samme, så forsinkelsen ikke kan bruges til at slippe uden om den
+    const reached = found >= limit.target;
+    this.setState({ locked: reached, limit: { ...limit, found } });
+    if (reached) this.time.delayedCall(LOCK_DELAY_MS, () => this.lock());
   }
 
   private setLimit(limit?: ParentLimit) {
-    this.state = { locked: false, limit };
-    saveParentState(this.state);
-    this.refreshStatus();
+    this.setState({ locked: false, limit });
     this.closeScreen();
   }
 
+  private setState(state: ParentState) {
+    this.state = state;
+    saveParentState(state);
+    this.refreshStatus();
+  }
+
   private lock() {
-    this.state = { locked: true };
-    saveParentState(this.state);
+    this.setState({ locked: true });
     const screen = this.newScreen();
     screen.add(this.add.text(320, 110, '🌙 Turen er slut', { ...FONT, fontSize: '56px' }).setOrigin(0.5));
     screen.add(this.add.text(320, 185, 'Hent en voksen', { ...FONT, fontSize: '36px', color: '#ffd23f' }).setOrigin(0.5));
     this.abdul = new Abdul(this, 200, 540);
     this.abdul.say(line(LINES.parentStop));
     this.addMath(screen, () => {
-      this.state = { locked: false };
-      saveParentState(this.state);
+      this.setState({ locked: false });
       this.showSettings();
     });
   }
@@ -132,65 +130,56 @@ export class ParentScene extends Phaser.Scene {
   }
 
   private addMath(screen: Phaser.GameObjects.Container, onSolved: () => void) {
-    const question = this.add.text(880, 90, '', { ...FONT, fontSize: '64px' }).setOrigin(0.5);
-    const display = this.add.text(880, 180, '', { ...FONT, fontSize: '64px', color: '#ffd23f' }).setOrigin(0.5);
+    const question = this.add.text(MATH_X, 90, '', { ...FONT, fontSize: '64px' }).setOrigin(0.5);
+    const display = this.add.text(MATH_X, 180, '', { ...FONT, fontSize: '64px', color: '#ffd23f' }).setOrigin(0.5);
     screen.add([question, display]);
-    this.math = { question, display, answer: '', typed: '', onSolved };
-    this.newProblem();
+
+    let answer = '';
+    let typed = '';
+    const refresh = () => display.setText(typed.padEnd(answer.length, '_').split('').join(' '));
+    // Facit er altid mellem 10 og 20: let for en voksen, men for svært for et barn på 4
+    const newProblem = () => {
+      const a = Phaser.Math.Between(5, 10);
+      const b = Phaser.Math.Between(5, 10);
+      answer = String(a + b);
+      typed = '';
+      question.setText(`${a} + ${b} =`);
+      refresh();
+    };
+    newProblem();
+
+    this.pressKey = (key) => {
+      typed = key === '⌫' ? typed.slice(0, -1) : typed + key;
+      refresh();
+      if (typed.length < answer.length) return;
+      if (typed === answer) {
+        this.pressKey = undefined; // ét rigtigt svar er nok, også hvis onSolved ikke skifter skærm
+        onSolved();
+        return;
+      }
+      this.tweens.killTweensOf(display);
+      this.tweens.add({ targets: display, x: { from: MATH_X, to: MATH_X + 15 }, duration: 60, yoyo: true, repeat: 3 });
+      newProblem();
+    };
 
     const keys = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '⌫', '0'];
     keys.forEach((key, i) => {
       const x = 780 + (i % 3) * 100;
       const y = 285 + Math.floor(i / 3) * 100;
-      screen.add(this.textButton(x, y, 90, 90, key, 0x457b9d, () => this.pressKey(key)));
+      screen.add(this.textButton(x, y, 90, 90, key, 0x457b9d, () => this.pressKey?.(key)));
     });
-  }
-
-  // Facit er altid mellem 10 og 20: let for en voksen, men for svært for et barn på 4
-  private newProblem() {
-    const math = this.math;
-    if (!math) return;
-    const a = Phaser.Math.Between(5, 10);
-    const b = Phaser.Math.Between(5, 10);
-    math.answer = String(a + b);
-    math.typed = '';
-    math.question.setText(`${a} + ${b} =`);
-    this.refreshDisplay();
-  }
-
-  private refreshDisplay() {
-    const math = this.math;
-    if (math) math.display.setText(math.typed.padEnd(math.answer.length, '_').split('').join(' '));
-  }
-
-  private pressKey(key: string) {
-    const math = this.math;
-    if (!math) return;
-    if (key === '⌫') {
-      math.typed = math.typed.slice(0, -1);
-      this.refreshDisplay();
-      return;
-    }
-    math.typed += key;
-    this.refreshDisplay();
-    if (math.typed.length < math.answer.length) return;
-    if (math.typed === math.answer) {
-      math.onSolved();
-      return;
-    }
-    this.tweens.add({ targets: math.display, x: { from: 880, to: 895 }, duration: 60, yoyo: true, repeat: 3 });
-    this.newProblem();
   }
 
   private onKey(event: KeyboardEvent) {
     if (!this.screen) return;
     if (event.key === 'Escape' && !this.state.locked) this.closeScreen();
-    else if (/^[0-9]$/.test(event.key)) this.pressKey(event.key);
-    else if (event.key === 'Backspace') this.pressKey('⌫');
+    else if (/^[0-9]$/.test(event.key)) this.pressKey?.(event.key);
+    else if (event.key === 'Backspace') this.pressKey?.('⌫');
   }
 
   private showSettings() {
     const screen = this.newScreen();
+    this.settingsOpen = true;
     screen.add(this.add.rectangle(640, 360, 1100, 680, 0x264653).setStrokeStyle(4, 0xffffff, 0.5));
     screen.add(this.add.text(640, 65, '⏱️ Forælder-timer', { ...FONT, fontSize: '40px', padding: { y: 6 } }).setOrigin(0.5));
     this.addCloseButton(screen, 1140, 65);
@@ -258,8 +247,8 @@ export class ParentScene extends Phaser.Scene {
       target = Phaser.Math.Clamp(target + by, 1, MAX_GOAL);
       count.setText(String(target));
     };
+    this.addHeading(screen, y, 'Antal:');
     screen.add([
-      this.add.text(120, y, 'Antal:', { ...FONT, fontSize: '26px' }).setOrigin(0, 0.5),
       this.textButton(320, y, 80, 70, '−', 0x457b9d, () => change(-1)),
       count,
       this.textButton(520, y, 80, 70, '+', 0x457b9d, () => change(1)),
@@ -284,8 +273,7 @@ export class ParentScene extends Phaser.Scene {
 
   private newScreen() {
     this.clearScreen();
-    this.button.setVisible(false);
-    this.status.setVisible(false);
+    this.setHudVisible(false);
     // Under Abduls depth, så han står foran det mørke lag
     this.screen = this.add.container(0, 0, [this.add.rectangle(640, 360, 1280, 720, 0x000000, 0.8)]).setDepth(10);
     this.pauseGame();
@@ -297,13 +285,18 @@ export class ParentScene extends Phaser.Scene {
     this.screen = undefined;
     this.abdul?.destroy();
     this.abdul = undefined;
-    this.math = undefined;
+    this.pressKey = undefined;
+    this.settingsOpen = false;
+  }
+
+  private setHudVisible(visible: boolean) {
+    this.button.setVisible(visible);
+    this.status.setVisible(visible);
   }
 
   private closeScreen() {
     this.clearScreen();
-    this.button.setVisible(true);
-    this.status.setVisible(true);
+    this.setHudVisible(true);
     for (const key of this.pausedScenes) {
       if (this.scene.isPaused(key)) this.scene.resume(key);
     }
