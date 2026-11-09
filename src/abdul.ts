@@ -45,6 +45,12 @@ export class Abdul {
     this.bubble = scene.add.container(0, 0, [this.bubbleBg, this.bubbleText]).setDepth(100).setVisible(false);
   }
 
+  destroy() {
+    this.hideTimer?.remove();
+    this.figure.destroy();
+    this.bubble.destroy();
+  }
+
   say(text: string) {
     speak(text);
 

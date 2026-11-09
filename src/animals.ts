@@ -121,11 +121,15 @@ export function getCounts(scene: Phaser.Scene): Counts {
   return scene.registry.get('counts') ?? {};
 }
 
+// Sendes på game.events for hvert fundet dyr. Forælder-timeren lytter, så "start forfra" ikke påvirker den.
+export const ANIMAL_COUNTED = 'animal-counted';
+
 // Tæller et fundet dyr og returnerer det nye antal
 export function countAnimal(scene: Phaser.Scene, key: AnimalKey): number {
   const counts = { ...getCounts(scene) };
   const count = (counts[key] ?? 0) + 1;
   counts[key] = count;
   scene.registry.set('counts', counts);
+  scene.game.events.emit(ANIMAL_COUNTED, key);
   return count;
 }

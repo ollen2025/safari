@@ -18,6 +18,7 @@ Et simpelt safari-spil til små børn (ca. 4 år). Gameplay og glæde kommer fø
 - Når bilen holder, kan man køre hen til **iskiosken** 🍦: Tryk kugler på isen (Abdul tæller op til 5), og spis den bagefter.
 - Abdul har flere sætninger til hver situation (`src/lines.ts`), så han ikke siger det samme hele tiden.
 - 🔄 i øverste hjørne starter forfra (nulstiller fundne dyr). Den skal trykkes to gange, så den ikke rammes ved et uheld.
+- ⏱️ øverst til højre er **forælder-timeren** og kan åbnes midt i en tur. Spillet kan stoppe om et antal minutter eller efter et antal fundne dyr. Derefter er det låst, også efter genindlæsning, indtil en voksen løser et regnestykke. Der skal også regnes for at ændre en aftale, der allerede kører.
 
 ## Lyde
 - Dyrelydene er CC0-optagelser fra freesound.org, se [CREDITS](public/assets/sounds/animals/CREDITS.md).
@@ -33,6 +34,8 @@ Et simpelt safari-spil til små børn (ca. 4 år). Gameplay og glæde kommer fø
 | `src/scenes/LookoutScene.ts` | Stående: bred savanne, dyr på forskellige afstande, kikkert-zoom |
 | `src/scenes/LookoutUIScene.ts` | Knapper, kikkert-ramme og tælling oven på LookoutScene |
 | `src/scenes/IceCreamScene.ts` | Iskiosken: byg og spis en is |
+| `src/scenes/ParentScene.ts` | Forælder-timer og lås, et lag oven på alle andre scener |
+| `src/parentLimit.ts` | Forældrenes grænse, gemt i browseren |
 | `src/scenes/BootScene.ts` | Indlæser lyde, før spillet starter |
 | `src/abdul.ts` | Abdul: tegning, tale og taleboble |
 | `src/animals.ts` | Dyrene (verden, navne, flertal, om de er i træer) og tælling af fundne dyr |
@@ -63,7 +66,7 @@ npm run build    # bygger til dist/
 - **Ingen tekst nødvendig.** Brug ikoner, lyd og oplæst tale.
 - **Kun tryk/klik.** Intet tastatur, ingen træk-gestures med præcision.
 - **Store mål:** Interaktive elementer skal være mindst ~120px.
-- **Man kan ikke tabe.** Ingen timer, ingen game over, ingen straf.
+- **Man kan ikke tabe.** Ingen timer, ingen game over, ingen straf. (Forælder-timeren er forældrenes aftale med barnet, ikke en del af spillet.)
 - **Øjeblikkelig respons:** Hvert tryk giver lyd og/eller animation.
 - **Kort og simpelt:** Én ting at gøre ad gangen. Masser af ros (🎉, konfetti, jubel).
 - Ingen reklamer, køb eller links ud af spillet.

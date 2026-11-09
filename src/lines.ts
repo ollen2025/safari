@@ -59,6 +59,10 @@ export const LINES = {
   backToSafari: ['Så kører vi igen!', 'Afsted! Nu skal vi finde flere dyr!'],
   restartConfirm: ['Skal vi starte forfra? Tryk igen!'],
   restarted: ['Så starter vi forfra! Kan du finde alle dyrene igen?'],
+  parentStop: [
+    'Nu er turen slut for i dag. Tak fordi du kørte med mig!',
+    'Så er vi hjemme! Tak for turen. Vi ses næste gang!',
+  ],
 } satisfies Record<string, string[]>;
 
 const lastPicked = new Map<string[], string>();

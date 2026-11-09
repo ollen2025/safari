@@ -16,6 +16,7 @@ export class BootScene extends Phaser.Scene {
 
   create() {
     this.registry.set('counts', {});
+    this.scene.launch('Parent');
     this.scene.start('Menu');
   }
 }
