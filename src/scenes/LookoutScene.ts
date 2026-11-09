@@ -270,7 +270,8 @@ export class LookoutScene extends Phaser.Scene {
     if (keyLabel) this.keyedAnimals.set(keyLabel, { sprite, mark });
   }
 
-  // Lille skilt med tasten ved dyrets øverste venstre hjørne. Vises kun, hvor der er et tastatur.
+  // Lille skilt med tasten lige uden for dyrets øverste venstre hjørne, så det ikke dækker dyret.
+  // Vises kun, hvor der er et tastatur.
   private addKeyLabel(sprite: Phaser.GameObjects.Image, keyLabel: string, hitSize: number, depth: number) {
     if (!this.sys.game.device.os.desktop) return undefined;
     const fontSize = hitSize / 4;
@@ -285,7 +286,7 @@ export class LookoutScene extends Phaser.Scene {
         padding: { x: fontSize * 0.3, y: fontSize * 0.1 },
         resolution: SPYGLASS_ZOOM, // skarp, også når kikkerten zoomer ind
       })
-      .setOrigin(0.5)
+      .setOrigin(1)
       .setDepth(depth + 1);
   }
 }
