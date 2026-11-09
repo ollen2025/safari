@@ -9,3 +9,5 @@
 | reindeer | [Reindeer.mp3](https://freesound.org/people/Stillerzzy/sounds/676278/) | Stillerzzy |
 | orca | [ORCA.wav](https://freesound.org/people/mikewest/sounds/198937/) | mikewest |
 | owl | [Owl Hoot](https://freesound.org/people/Breviceps/sounds/465697/) | Breviceps |
+| wolf | [22_Lobo_aullando.wav](https://freesound.org/people/JoseAgudelo/sounds/472402/) | JoseAgudelo |
+| mammoth | [Mastodon trumpet](https://freesound.org/people/vintprox/sounds/854137/) | vintprox |

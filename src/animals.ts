@@ -39,7 +39,9 @@ export type AnimalKey =
   | 'arcticfox'
   | 'reindeer'
   | 'orca'
-  | 'owl';
+  | 'owl'
+  | 'wolf'
+  | 'mammoth';
 
 // Hvor dyret er: på jorden (standard), hængende under en gren, siddende oven på en gren (eller klippe),
 // eller svømmende (kun i vandet, fx spækhuggeren)
@@ -92,6 +94,8 @@ export const ANIMALS: Record<AnimalKey, AnimalDef> = {
   reindeer: { world: 'ice', name: 'et rensdyr', plural: 'rensdyr' },
   orca: { world: 'ice', name: 'en spækhugger', plural: 'spækhuggere', pose: 'swim' },
   owl: { world: 'ice', name: 'en sneugle', plural: 'sneugler', pose: 'perch', scale: 0.65 },
+  wolf: { world: 'ice', name: 'en ulv', plural: 'ulve', scale: 0.85 },
+  mammoth: { world: 'ice', name: 'en mammut', plural: 'mammutter', scale: 1.15 }, // uddød, men en 4-årigs favorit
 };
 
 export const ANIMAL_KEYS = Object.keys(ANIMALS) as AnimalKey[];

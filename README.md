@@ -14,7 +14,7 @@ Et simpelt safari-spil til små børn (ca. 4 år). Gameplay og glæde kommer fø
 - Trykker man på et dyr, siger det sin **dyrelyd** og bliver **talt** (stort tal på skærmen, og Abdul siger fx "Nu har du fundet 3 zebraer!"). Samlingen øverst viser, hvor mange man har fundet af hvert dyr.
 - Dyr på savannen: elefant, giraf, zebra, løve (han og hun), bavian, flodhest, næsehorn, bøffel, struds, hyæne, gazelle, gnu og krokodille. Nogle gange er der en unge med. Der er også **vandhuller** med flodheste og krokodiller.
 - Dyr i junglen: tiger, træleopard, puma, slange, okapi, gorilla, chimpanse, papegøje, tukan og dovendyr. Nogle af dem hænger i eller sidder på grenene i træerne, og der er skovsøer.
-- Dyr på isen: isbjørn, pingvin, sæl, søløve, søpapegøje, hvalros, polarræv, rensdyr, spækhugger og sneugle. Det sner, fuglene sidder på klipper, og i hullerne i isen svømmer sæler og spækhuggere.
+- Dyr på isen: isbjørn, pingvin, sæl, søløve, søpapegøje, hvalros, polarræv, rensdyr, spækhugger, sneugle, ulv og mammut. Det sner, fuglene sidder på klipper, og i hullerne i isen svømmer sæler og spækhuggere.
 - Når bilen holder, kan man køre hen til **iskiosken** 🍦: Tryk kugler på isen (Abdul tæller op til 5), og spis den bagefter.
 - Abdul har flere sætninger til hver situation (`src/lines.ts`), så han ikke siger det samme hele tiden.
 - 🔄 i øverste hjørne starter forfra (nulstiller fundne dyr). Den skal trykkes to gange, så den ikke rammes ved et uheld.
