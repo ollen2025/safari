@@ -81,6 +81,7 @@ export const WORLDS: WorldDef[] = [
     title: 'Australien',
     spokenName: 'Australien',
     emoji: '🦘',
+    play: 'australia',
     paint: (g, p) => {
       top(g, p, p.h * 0.6, 0xffb347);
       bottom(g, p, p.h * 0.4, 0xc8553d);
@@ -94,6 +95,7 @@ export const WORLDS: WorldDef[] = [
     title: 'Under vandet',
     spokenName: 'havet',
     emoji: '🐠',
+    play: 'sea',
     paint: (g, p) => {
       top(g, p, p.h, 0x0096c7);
       g.fillStyle(0x0077b6).fillRect(p.l, p.t + p.h * 0.45, p.w, p.h * 0.4);

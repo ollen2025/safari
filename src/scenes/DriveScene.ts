@@ -4,8 +4,8 @@ import { addAnimalImage, BABY_SCALE, variedSize } from '../animalArt';
 import { ANIMALS, currentWorld, poseOf, randomAnimal, type AnimalKey, type WorldKey } from '../animals';
 import { LANDSCAPES, type Landscape } from '../landscapes';
 import { line, LINES } from '../lines';
-import { addSnowfall, BRANCH, drawHill, drawKiosk } from '../scenery';
-import { CollectionBar, makeButton } from '../ui';
+import { addWeather, BRANCH, drawBeach, drawHill, drawKiosk, drawPalm } from '../scenery';
+import { CollectionBar, drawIceCreamIcon, makeButton } from '../ui';
 
 const CRUISE_SPEED = 200; // px/s for det nærmeste lag
 const ACCELERATION = 120;
@@ -14,6 +14,10 @@ const ANIMAL_PARALLAX = 0.8;
 const HORIZON = 300;
 const WINDOW = { left: 40, right: 1240, top: 80, bottom: 510 };
 const HOME_DRIVE_SECONDS = 4; // så længe kører man, før iskiosken dukker op
+// Under vandet: så langt stiger ubåden op til overfladen, og så højt over havbunden ligger vandkanten
+const SURFACE_RISE = 400;
+const SHORELINE_Y = -60;
+const SURFACE_MS = 2500;
 const RESTART_CONFIRM_MS = 4000; // "start forfra" kræver to tryk inden for denne tid
 
 type DriveState = 'driving' | 'homeward' | 'stopping' | 'stopped';
@@ -44,6 +48,7 @@ export class DriveScene extends Phaser.Scene {
   private kiosk?: Phaser.GameObjects.Container;
   private restartArmedUntil = 0;
   private lookedHere = false; // man har allerede været ude ved dette stop og skal køre videre først
+  private rise = 0; // hvor langt ubåden er steget op mod overfladen (0 = nede ved bunden)
 
   private world: WorldKey = 'safari';
   private landscape!: Landscape;
@@ -72,6 +77,7 @@ export class DriveScene extends Phaser.Scene {
     this.kiosk = undefined;
     this.restartArmedUntil = 0;
     this.lookedHere = false;
+    this.rise = 0;
     this.world = currentWorld(this);
     this.landscape = LANDSCAPES[this.world];
     this.cameras.main.fadeIn(500);
@@ -84,9 +90,9 @@ export class DriveScene extends Phaser.Scene {
     new CollectionBar(this, 640, 40, this.world);
 
     this.stopButton = makeButton(this, 1110, 615, '✋', 0xd62828, () => this.brake()).setVisible(false);
-    this.standButton = makeButton(this, 690, 615, '🧍', 0x2a9d8f, () => this.standUp()).setVisible(false);
-    this.iceCreamButton = makeButton(this, 890, 615, '🍦', 0xf4a6c1, () => this.driveHome()).setVisible(false);
-    this.driveButton = makeButton(this, 1110, 615, '🚙', 0x52b788, () => this.drive()).setVisible(false);
+    this.standButton = makeButton(this, 690, 615, this.landscape.vehicle.exitIcon, 0x2a9d8f, () => this.standUp()).setVisible(false);
+    this.iceCreamButton = makeButton(this, 890, 615, drawIceCreamIcon, 0xf4a6c1, () => this.driveHome()).setVisible(false);
+    this.driveButton = makeButton(this, 1110, 615, this.landscape.vehicle.goIcon, 0x52b788, () => this.drive()).setVisible(false);
     // Lille knap i hjørnet, så den ikke trykkes på ved et uheld
     const restartButton = makeButton(this, 1222, 40, '🔄', 0xffffff, () => this.restart(restartButton), 32);
     makeButton(this, 58, 40, '🏠', 0xffffff, () => this.goToMenu(), 32);
@@ -96,11 +102,13 @@ export class DriveScene extends Phaser.Scene {
     this.events.on('wake', (_sys: Phaser.Scenes.Systems, data?: { from?: string }) => {
       if (data?.from === 'icecream') {
         this.cameras.main.fadeIn(400);
-        this.abdul.say(line(LINES.backToSafari));
+        this.abdul.say(line(this.landscape.vehicle.lines.backToSafari));
         this.drive(false);
+        // Ubåden dykker ned igen
+        if (this.rise > 0) this.tweens.add({ targets: this, rise: 0, duration: SURFACE_MS, ease: 'Sine.easeInOut' });
       } else {
         this.showStoppedButtons(true); // skjuler "gå ud", indtil bilen har kørt videre
-        this.abdul.say(line(LINES.wake));
+        this.abdul.say(line(this.landscape.vehicle.lines.wake));
       }
     });
     this.setupKeyboard();
@@ -156,7 +164,7 @@ export class DriveScene extends Phaser.Scene {
     if (this.state === 'homeward') {
       this.homewardTime += dt;
       if (!this.kiosk && this.homewardTime > HOME_DRIVE_SECONDS) {
-        this.kiosk = drawKiosk(this, 1500, 490);
+        this.kiosk = this.landscape.beach ? this.beachKiosk() : drawKiosk(this, 1500, 490);
         this.animalLayer.add(this.kiosk);
       }
       // Bremser i tide til at holde lige ud for kiosken
@@ -166,8 +174,16 @@ export class DriveScene extends Phaser.Scene {
       }
     }
 
-    // Bilen gynger lidt på den hullede vej
-    this.outside.y = Math.sin(time / 80) * 3 * (this.speed / CRUISE_SPEED);
+    // Bilen gynger lidt på den hullede vej. Når ubåden stiger op, glider landskabet ned.
+    this.outside.y = this.rise + Math.sin(time / 80) * 3 * (this.speed / CRUISE_SPEED);
+  }
+
+  // Iskiosken på stranden, med palmer. Ubåden begynder at stige op til overfladen, så man kan se den.
+  private beachKiosk() {
+    const kiosk = drawKiosk(this, 1500, SHORELINE_Y - 20).setScale(0.8);
+    kiosk.addAt([drawPalm(this, -260, 30, 0.9), drawPalm(this, 300, 20, 1.05)], 0);
+    this.tweens.add({ targets: this, rise: SURFACE_RISE, duration: SURFACE_MS, ease: 'Sine.easeInOut' });
+    return kiosk;
   }
 
   private goToMenu() {
@@ -228,7 +244,7 @@ export class DriveScene extends Phaser.Scene {
     this.lookedHere = false;
     this.showStoppedButtons(false);
     this.stopButton.setVisible(true);
-    if (announce) this.abdul.say(line(LINES.drive));
+    if (announce) this.abdul.say(line(this.landscape.vehicle.lines.drive));
   }
 
   // Nulstiller alle fundne dyr. Første tryk spørger, andet tryk (inden for et par sekunder) starter forfra.
@@ -251,14 +267,14 @@ export class DriveScene extends Phaser.Scene {
     this.kiosk?.destroy();
     this.kiosk = undefined;
     this.showStoppedButtons(false);
-    this.abdul.say(line(LINES.homeward));
+    this.abdul.say(line(this.landscape.vehicle.lines.homeward));
   }
 
   private brake() {
     if (this.state !== 'driving') return;
     this.state = 'stopping';
     this.stopButton.setVisible(false);
-    this.abdul.say(line(LINES.brake));
+    this.abdul.say(line(this.landscape.vehicle.lines.brake));
   }
 
   private onStopped() {
@@ -285,7 +301,7 @@ export class DriveScene extends Phaser.Scene {
       ),
     ];
     this.showStoppedButtons(true);
-    this.abdul.say(line(this.seenWhenStopped.length > 0 ? LINES.stoppedSeen : LINES.stoppedNothing));
+    this.abdul.say(line(this.seenWhenStopped.length > 0 ? this.landscape.vehicle.lines.stoppedSeen : this.landscape.vehicle.lines.stoppedNothing));
   }
 
   private standUp() {
@@ -305,7 +321,9 @@ export class DriveScene extends Phaser.Scene {
       // Den anden i et par er nogle gange en unge
       const baby = i > 0 && Math.random() < 0.5;
       const size = variedSize(110) * (baby ? BABY_SCALE : 1) * (ANIMALS[key].scale ?? 1);
-      const sprite = addAnimalImage(this, key, 1400 + i * 130, Phaser.Math.Between(440, 480), size);
+      // Fisk og andre havdyr svømmer et stykke over bunden
+      const y = Phaser.Math.Between(440, 480) - (ANIMALS[key].float ?? 0) * 110;
+      const sprite = addAnimalImage(this, key, 1400 + i * 130, y, size);
       // Små børn trykker på dyret i stedet for stopknappen, så det stopper også bilen
       sprite.setInteractive({ useHandCursor: true }).on('pointerdown', () => this.brake());
       this.animalLayer.add(sprite);
@@ -336,9 +354,17 @@ export class DriveScene extends Phaser.Scene {
     this.animalLayer = this.add.container(0, 0);
     const bushes = this.add.container(0, 0);
     this.outside.add([sky, sun, hills, ground, trees, water, this.animalLayer, bushes]);
-    if (land.snow) {
+    if (land.beach) {
+      // Over havet (uden for billedet, indtil ubåden stiger op): strand, sol og vandoverfladen
+      const beach = drawBeach(this, 640, SHORELINE_Y, 1400, 900);
+      const beachSun = this.add.circle(1050, SHORELINE_Y - 280, 55, 0xffd23f);
+      const surfaceWater = this.add.rectangle(640, SHORELINE_Y + 30, 1280, 60, land.sky);
+      const waves = this.add.rectangle(640, SHORELINE_Y + 3, 1280, 8, 0xbfe6f5);
+      this.outside.addAt([beach, beachSun, surfaceWater, waves], 0);
+    }
+    if (land.weather) {
       const { left, right, top, bottom } = WINDOW;
-      this.outside.add(addSnowfall(this, { x: left, y: top - 20, width: right - left, height: bottom - top + 20 }));
+      this.outside.add(addWeather(this, land.weather, { x: left, y: top - 20, width: right - left, height: bottom - top + 20 }));
     }
 
     const { Between, FloatBetween } = Phaser.Math;
@@ -363,15 +389,21 @@ export class DriveScene extends Phaser.Scene {
     this.layers.push({ items, factor, span });
   }
 
-  // Jeepens indre: tag, dør og vinduesramme, tegnet oven på landskabet
+  // Jeepens (eller ubådens) indre: tag, dør og vinduesramme, tegnet oven på landskabet
   private buildInterior() {
     const { left, right, top, bottom } = WINDOW;
+    const { body, trim, rivets } = this.landscape.vehicle;
     const g = this.add.graphics().setDepth(10);
-    g.fillStyle(0x4a5530);
+    g.fillStyle(body);
     g.fillRect(0, 0, 1280, top);
     g.fillRect(0, 0, left, 720);
     g.fillRect(right, 0, 1280 - right, 720);
     g.fillRect(0, bottom, 1280, 720 - bottom);
-    g.lineStyle(14, 0x2f3720).strokeRoundedRect(left, top, right - left, bottom - top, 12);
+    g.lineStyle(14, trim).strokeRoundedRect(left, top, right - left, bottom - top, 12);
+    if (rivets) {
+      g.fillStyle(trim);
+      for (let x = left + 20; x < right; x += 60) g.fillCircle(x, top - 22, 6).fillCircle(x, bottom + 22, 6);
+      for (let y = top + 20; y < bottom; y += 60) g.fillCircle(left - 20, y, 5).fillCircle(right + 20, y, 5);
+    }
   }
 }

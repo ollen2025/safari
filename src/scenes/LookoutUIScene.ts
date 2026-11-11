@@ -4,7 +4,7 @@ import { addAnimalImage } from '../animalArt';
 import { ANIMALS, animalsIn, countAnimal, currentWorld, getCounts, type AnimalKey } from '../animals';
 import { LANDSCAPES } from '../landscapes';
 import { line, LINES } from '../lines';
-import { addSnowfall } from '../scenery';
+import { addWeather } from '../scenery';
 import { CollectionBar, makeBigNumber, makeButton, popIn } from '../ui';
 import type { LookoutScene } from './LookoutScene';
 
@@ -21,19 +21,20 @@ export class LookoutUIScene extends Phaser.Scene {
     const world = this.scene.get('Lookout') as LookoutScene;
     this.spyglassOn = false;
 
-    // Jeepens forkant, som spilleren står i
-    this.add.graphics().fillStyle(0x2f3720).fillRect(0, 652, 1280, 10).fillStyle(0x4a5530).fillRect(0, 660, 1280, 60);
+    const land = LANDSCAPES[currentWorld(this)];
+    // Jeepens (eller ubådens) forkant, som spilleren står i
+    this.add.graphics().fillStyle(land.vehicle.trim).fillRect(0, 652, 1280, 10).fillStyle(land.vehicle.body).fillRect(0, 660, 1280, 60);
 
-    // Sneen falder i skærmens koordinater, så den ikke zoomer med kikkerten
-    if (LANDSCAPES[currentWorld(this)].snow) {
-      addSnowfall(this, { x: 0, y: -10, width: 1280, height: 670 }, 80).forEach((f) => f.setDepth(5));
+    // Sne og bobler bevæger sig i skærmens koordinater, så de ikke zoomer med kikkerten
+    if (land.weather) {
+      addWeather(this, land.weather, { x: 0, y: -10, width: 1280, height: 670 }, 80).forEach((f) => f.setDepth(5));
     }
 
     const abdul = new Abdul(this, 300, 640, 0.55);
     const overlay = this.add.image(640, 360, this.spyglassTexture()).setDepth(15).setVisible(false);
     new CollectionBar(this, 640, 45, currentWorld(this));
 
-    makeButton(this, 110, 620, '🚙', 0x52b788, () => this.sitDown(), 75);
+    makeButton(this, 110, 620, land.vehicle.goIcon, 0x52b788, () => this.sitDown(), 75);
     makeButton(this, 1170, 620, '🔭', 0xe76f51, () => {
       this.spyglassOn = !this.spyglassOn;
       overlay.setVisible(this.spyglassOn);

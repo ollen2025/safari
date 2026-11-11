@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { drawIceCreamIcon } from './ui';
 
 // Simple tegninger af landskabet. Hver funktion tegner omkring (0, 0), hvor y er bunden.
 
@@ -39,7 +40,7 @@ export function drawKiosk(scene: Phaser.Scene, x: number, y: number) {
   for (let i = 0; i < stripes; i++) {
     g.fillStyle(i % 2 === 0 ? 0xe63946 : 0xffffff).fillRect(-130 + i * stripeWidth, -200, stripeWidth, 45);
   }
-  const sign = scene.add.text(0, -240, '🍦', { fontSize: '70px', padding: { x: 6, y: 6 } }).setOrigin(0.5);
+  const sign = drawIceCreamIcon(scene, 100).setPosition(0, -250);
   return scene.add.container(x, y, [g, sign]);
 }
 
@@ -111,26 +112,145 @@ export function drawIceHole(scene: Phaser.Scene, x: number, y: number, width: nu
   return g;
 }
 
-// Sne der falder stille ned inden for et område. Flagerne starter forfra i toppen, når de når bunden.
-export function addSnowfall(scene: Phaser.Scene, area: { x: number; y: number; width: number; height: number }, count = 60) {
-  const flakes: Phaser.GameObjects.Arc[] = [];
+export type Weather = 'snow' | 'bubbles';
+
+// Sne der falder stille ned, eller bobler der stiger op, inden for et område.
+// Hver flage/boble starter forfra i den anden ende, når den når frem.
+export function addWeather(
+  scene: Phaser.Scene,
+  weather: Weather,
+  area: { x: number; y: number; width: number; height: number },
+  count = 60,
+) {
+  const bubbles = weather === 'bubbles';
+  const top = area.y;
+  const bottom = area.y + area.height;
+  const [startEdge, endEdge] = bubbles ? [bottom, top] : [top, bottom];
+  const particles: Phaser.GameObjects.Arc[] = [];
   for (let i = 0; i < count; i++) {
-    const flake = scene.add.circle(0, 0, Phaser.Math.FloatBetween(2, 4.5), 0xffffff, 0.9);
+    const p = bubbles
+      ? scene.add.circle(0, 0, Phaser.Math.FloatBetween(3, 8)).setStrokeStyle(2, 0xffffff, 0.8).setFillStyle(0xffffff, 0.15)
+      : scene.add.circle(0, 0, Phaser.Math.FloatBetween(2, 4.5), 0xffffff, 0.9);
     const speed = Phaser.Math.FloatBetween(0.06, 0.12); // px pr. millisekund
-    // Første gang starter flagen et tilfældigt sted på vejen ned, så de ikke alle starter i toppen
-    const fall = (startY: number) => {
+    // Første gang starter den et tilfældigt sted på vejen, så de ikke alle starter i kanten
+    const move = (startY: number) => {
       const x = area.x + Phaser.Math.Between(0, area.width);
-      flake.setPosition(x, startY);
+      p.setPosition(x, startY);
       scene.tweens.add({
-        targets: flake,
-        y: area.y + area.height,
+        targets: p,
+        y: endEdge,
         x: x + Phaser.Math.Between(-50, 50),
-        duration: (area.y + area.height - startY) / speed,
-        onComplete: () => fall(area.y),
+        duration: Math.abs(endEdge - startY) / speed,
+        onComplete: () => move(startEdge),
       });
     };
-    fall(area.y + Phaser.Math.Between(0, area.height));
-    flakes.push(flake);
+    move(top + Phaser.Math.Between(0, area.height));
+    particles.push(p);
   }
-  return flakes;
+  return particles;
+}
+
+// Eukalyptustræ med lys, plettet stamme og en vandret gren (ved BRANCH) til koalaer og fugle
+export function drawEucalyptus(scene: Phaser.Scene, x: number, y: number, scale = 1) {
+  const g = scene.add.graphics({ x, y });
+  g.fillStyle(0xe8e2d6).fillRect(-10, -210, 20, 210);
+  g.fillStyle(0xe8e2d6).fillTriangle(-22, 0, 22, 0, 0, -30);
+  g.fillStyle(0xc9bfae).fillEllipse(-3, -60, 8, 18).fillEllipse(4, -150, 7, 16).fillEllipse(-4, -185, 6, 12);
+  g.lineStyle(11, 0xe8e2d6).lineBetween(0, -108, 88, -128).lineBetween(0, -170, -60, -205);
+  g.fillStyle(0x7d9a6e).fillEllipse(94, -136, 46, 22);
+  g.fillStyle(0x6b8a5e).fillEllipse(-60, -220, 110, 56).fillEllipse(30, -235, 130, 64);
+  g.fillStyle(0x8aa37b).fillEllipse(-10, -255, 140, 60).fillEllipse(60, -220, 80, 40);
+  g.fillStyle(0xa3b98f).fillEllipse(-30, -265, 70, 26).fillEllipse(30, -250, 60, 24);
+  return g.setScale(scale);
+}
+
+// Runde tuer af spinifex-græs med spidse strå
+export function drawSpinifex(scene: Phaser.Scene, x: number, y: number, scale = 1) {
+  const g = scene.add.graphics({ x, y });
+  g.fillStyle(0x9c8f3a).fillEllipse(-40, 0, 100, 50).fillEllipse(40, -4, 110, 60);
+  g.fillStyle(0xc2b45a).fillEllipse(-44, -8, 76, 30).fillEllipse(36, -14, 84, 36);
+  g.lineStyle(3, 0xd9cb72);
+  for (let i = 0; i < 9; i++) {
+    const bx = -80 + i * 20;
+    g.lineBetween(bx, -10, bx + (i % 2 ? 10 : -10), -46 - (i % 3) * 6);
+  }
+  return g.setScale(scale);
+}
+
+// Billabong: vandhul med rød, støvet bred og siv
+export function drawBillabong(scene: Phaser.Scene, x: number, y: number, width: number, height: number) {
+  const g = scene.add.graphics({ x, y });
+  g.fillStyle(0xb5651d).fillEllipse(0, 0, width + 30, height + 16);
+  g.fillStyle(0x4f9fc0).fillEllipse(0, 0, width, height);
+  g.fillStyle(0x8fcbe0).fillEllipse(-width * 0.15, -height * 0.15, width * 0.45, height * 0.3);
+  g.lineStyle(3, 0x6a7f3a);
+  for (const dx of [0.42, 0.46, 0.5]) g.lineBetween(width * dx, height * 0.1, width * dx + 4, -height * 0.4);
+  return g;
+}
+
+// Koraltræ med runde spidser og en vandret gren (ved BRANCH), hvor søheste kan holde fast
+export function drawCoralTree(scene: Phaser.Scene, x: number, y: number, scale = 1) {
+  const g = scene.add.graphics({ x, y });
+  const coral = 0xe76f51;
+  g.fillStyle(coral).fillTriangle(-26, 0, 26, 0, 0, -40);
+  g.lineStyle(18, coral).lineBetween(0, 0, 0, -200);
+  g.lineStyle(11, coral).lineBetween(0, -108, 88, -128).lineBetween(0, -150, -60, -200).lineBetween(0, -170, 50, -230);
+  g.lineStyle(8, coral).lineBetween(-30, -175, -70, -160).lineBetween(-60, -200, -50, -240).lineBetween(25, -200, 70, -200);
+  g.fillStyle(0xf4a261);
+  for (const [tx, ty] of [[88, -128], [0, -205], [-60, -205], [50, -235], [-70, -160], [-50, -244], [70, -200]]) g.fillCircle(tx, ty, 10);
+  return g.setScale(scale);
+}
+
+// Tang der vajer, og en lyserød søanemone
+export function drawSeaweed(scene: Phaser.Scene, x: number, y: number, scale = 1) {
+  const g = scene.add.graphics({ x, y });
+  for (const [dx, h, col] of [[-60, 110, 0x2d6a4f], [-30, 150, 0x40916c], [10, 120, 0x2d6a4f], [100, 90, 0x40916c]]) {
+    g.fillStyle(col);
+    for (let i = 0; i < 5; i++) g.fillEllipse(dx + (i % 2 ? 8 : -8), -i * (h / 5) - 12, 22, h / 4);
+  }
+  g.fillStyle(0xf4a6c1).fillEllipse(55, -10, 70, 30);
+  g.lineStyle(7, 0xf4a6c1);
+  for (let i = 0; i < 7; i++) g.lineBetween(30 + i * 8, -18, 26 + i * 9, -50 - (i % 2) * 10);
+  return g.setScale(scale);
+}
+
+// Klippe på bunden med en mørk hule, hvor murænen bor. (x, y) er midten af hulen.
+export function drawSeaCave(scene: Phaser.Scene, x: number, y: number, width: number, height: number) {
+  const g = scene.add.graphics({ x, y });
+  g.fillStyle(0x6c7a89).fillEllipse(0, -height * 0.15, width * 0.85, height * 1.7);
+  g.fillStyle(0x8d99ae).fillEllipse(-width * 0.15, -height * 0.6, width * 0.4, height * 0.45);
+  g.fillStyle(0x1b263b).fillEllipse(0, 0, width * 0.55, height * 0.9);
+  return g;
+}
+
+// Palme på stranden
+export function drawPalm(scene: Phaser.Scene, x: number, y: number, scale = 1) {
+  const g = scene.add.graphics({ x, y });
+  g.lineStyle(16, 0x8d6e4a);
+  const trunk = new Phaser.Curves.QuadraticBezier(
+    new Phaser.Math.Vector2(0, 0),
+    new Phaser.Math.Vector2(30, -110),
+    new Phaser.Math.Vector2(-10, -220),
+  );
+  trunk.draw(g, 24);
+  // Bladene sidder rundt om toppen. Vinkel 0 er mod højre, -π/2 er lige op.
+  g.fillStyle(0x52734d);
+  for (const angle of [0.35, -0.5, -1.45, -2.4, 2.8]) {
+    g.save();
+    g.translateCanvas(-10, -220);
+    g.rotateCanvas(angle);
+    g.fillEllipse(55, 0, 115, 26);
+    g.restore();
+  }
+  g.fillStyle(0x6b4423).fillCircle(-16, -212, 8).fillCircle(-2, -210, 8);
+  return g.setScale(scale);
+}
+
+// Strand set fra vandkanten: himmel, sol, sand og havet forrest. y er vandkanten.
+export function drawBeach(scene: Phaser.Scene, x: number, y: number, width: number, skyHeight: number) {
+  const g = scene.add.graphics({ x, y });
+  g.fillStyle(0x8fd3f4).fillRect(-width / 2, -skyHeight, width, skyHeight);
+  g.fillStyle(0xf4e1a6).fillRect(-width / 2, -100, width, 100);
+  g.fillStyle(0xe9cf8f).fillEllipse(-width * 0.2, -40, 300, 30).fillEllipse(width * 0.25, -60, 260, 24);
+  return g;
 }

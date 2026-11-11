@@ -3,7 +3,7 @@
 Et simpelt safari-spil til små børn (ca. 4 år). Gameplay og glæde kommer før grafik.
 
 ## Spillet
-- Spillet starter i en **startmenu**: postkort, der hænger på en snor i solnedgangen. Man vælger, hvor turen går hen. **Safari**, **jungle** og **isen** er klar; Australien, under vandet og dinosaurer er pladsholdere med en hængelås (Abdul siger, at de kommer snart). På tastatur vælges kortene med **1** til **6**. 🏠 i safarien fører tilbage til menuen.
+- Spillet starter i en **startmenu**: postkort, der hænger på en snor i solnedgangen. Man vælger, hvor turen går hen. **Safari**, **jungle**, **isen**, **Australien** og **under vandet** er klar; dinosaurer er en pladsholder med en hængelås (Abdul siger, at de kommer snart). På tastatur vælges kortene med **1** til **6**. 🏠 i safarien fører tilbage til menuen.
 - Spilleren sidder i en jeep og kigger ud ad vinduet, mens savannen kører forbi.
 - Chaufføren hedder **Abdul**. Han snakker (browserens oplæser) og viser en taleboble.
 - Ser man et dyr, trykker man på den røde ✋-knap (eller direkte på dyret), og Abdul stopper.
@@ -15,7 +15,10 @@ Et simpelt safari-spil til små børn (ca. 4 år). Gameplay og glæde kommer fø
 - Dyr på savannen: elefant, giraf, zebra, løve (han og hun), bavian, flodhest, næsehorn, bøffel, struds, hyæne, gazelle, gnu og krokodille. Nogle gange er der en unge med. Der er også **vandhuller** med flodheste og krokodiller.
 - Dyr i junglen: tiger, træleopard, puma, slange, okapi, gorilla, chimpanse, papegøje, tukan og dovendyr. Nogle af dem hænger i eller sidder på grenene i træerne, og der er skovsøer.
 - Dyr på isen: isbjørn, pingvin, sæl, søløve, søpapegøje, hvalros, polarræv, rensdyr, spækhugger, sneugle, ulv og mammut. Det sner, fuglene sidder på klipper, og i hullerne i isen svømmer sæler og spækhuggere.
-- Når bilen holder, kan man køre hen til **iskiosken** 🍦: Tryk kugler på isen (Abdul tæller op til 5), og spis den bagefter.
+- Dyr i Australien: kænguru, koala, wombat, næbdyr, emu, latterfugl, tasmansk djævel, dingo, kakadue og myrepindsvin. Jorden er rødt sand, koalaer og fugle sidder i eukalyptustræerne, og næbdyret svømmer i vandhullerne (billabongs).
+- Under vandet sidder man i en **gul ubåd**: kaskelot, delfin, haj, klovnefisk, søko, blæksprutte, havskildpadde, søhest, krabbe, vandmand og muræne. Fiskene svømmer over bunden, der stiger bobler op, søhesten holder fast i koraltræerne, og murænen kigger op af en hule i klippen.
+- Når bilen holder, kan man køre hen til **iskiosken** 🍦: Tryk kugler på isen (Abdul tæller op til 5), og spis den bagefter. Kiosken står i verdenens eget landskab. Under vandet stiger ubåden op til overfladen, og kiosken ligger på en strand med palmer.
+- Knapperne til jeep, ubåd og is er tegnet (`drawJeepIcon`, `drawSubmarineIcon`, `drawIceCreamIcon` i `src/ui.ts`), resten er emojis.
 - Abdul har flere sætninger til hver situation (`src/lines.ts`), så han ikke siger det samme hele tiden.
 - 🔄 i øverste hjørne starter forfra (nulstiller fundne dyr). Den skal trykkes to gange, så den ikke rammes ved et uheld.
 - ⏱️ øverst til højre er **forælder-timeren** og kan åbnes midt i en tur. Spillet kan stoppe om et antal minutter eller efter et antal fundne dyr. Derefter er det låst, også efter genindlæsning, indtil en voksen løser et regnestykke. Der skal også regnes for at ændre en aftale, der allerede kører.
@@ -39,12 +42,12 @@ Et simpelt safari-spil til små børn (ca. 4 år). Gameplay og glæde kommer fø
 | `src/scenes/BootScene.ts` | Indlæser lyde, før spillet starter |
 | `src/abdul.ts` | Abdul: tegning, tale og taleboble |
 | `src/animals.ts` | Dyrene (verden, navne, flertal, om de er i træer) og tælling af fundne dyr |
-| `src/landscapes.ts` | Hver verdens landskab: farver, træer, vand og hvilke dyr der drikker/svømmer |
+| `src/landscapes.ts` | Hver verdens landskab: farver, køretøj (jeep/ubåd), træer, vand og hvilke dyr der drikker/svømmer |
 | `src/lines.ts` | Abduls replikker |
 | `src/animalArt.ts` | Indlæsning af dyretegningerne, unger og størrelsesvariation |
 | `src/sound.ts` | Afspilning af dyrelyde og Abduls stemme |
 | `src/ui.ts` | Knapper og samlings-bjælken |
-| `src/scenery.ts` | Træer, klipper, buske, bakker, vand, snefald og iskiosk |
+| `src/scenery.ts` | Træer, klipper, buske, bakker, vand, sne/bobler og iskiosk for hver verden |
 
 ## Tech stack
 - **TypeScript** som sprog

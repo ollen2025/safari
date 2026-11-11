@@ -1,9 +1,11 @@
 import Phaser from 'phaser';
 import { Abdul } from '../abdul';
+import { currentWorld } from '../animals';
+import { LANDSCAPES } from '../landscapes';
 import { line, LINES } from '../lines';
-import { drawKiosk } from '../scenery';
+import { addWeather, drawBeach, drawHill, drawKiosk, drawPalm } from '../scenery';
 import { speak } from '../sound';
-import { makeBigNumber, makeButton, popIn } from '../ui';
+import { drawSubmarineIcon, makeBigNumber, makeButton, popIn } from '../ui';
 
 const FLAVORS = ['strawberry', 'chocolate', 'vanilla', 'pistachio']; // tegninger i public/assets/icecream/
 const NUMBER_WORDS = ['Nul', 'En', 'To', 'Tre', 'Fire', 'Fem'];
@@ -49,9 +51,7 @@ export class IceCreamScene extends Phaser.Scene {
     this.hintTimer = undefined;
     this.cameras.main.fadeIn(400);
 
-    this.add.rectangle(640, 200, 1280, 400, 0x8fd3f4);
-    this.add.circle(1050, 120, 55, 0xffd23f);
-    this.add.rectangle(640, 560, 1280, 320, 0xe9c46a);
+    this.drawBackdrop();
     drawKiosk(this, 270, 720).setScale(1.8);
 
     this.cone = this.add.image(CONE.x, CONE.top, 'cone').setOrigin(0.5, 0).setDepth(CONE_DEPTH);
@@ -132,12 +132,38 @@ export class IceCreamScene extends Phaser.Scene {
     if (this.scoops.length === 0) this.finish();
   }
 
+  // Baggrunden passer til verdenen: samme himmel, jord og træer. Under vandet ligger kiosken på stranden.
+  private drawBackdrop() {
+    const land = LANDSCAPES[currentWorld(this)];
+    if (land.beach) {
+      drawBeach(this, 640, 720, 1280, 400);
+      this.add.rectangle(640, 360, 1280, 70, land.sky); // havet ude bagved
+      this.add.rectangle(640, 327, 1280, 6, 0xbfe6f5);
+      this.add.circle(1050, 120, 55, 0xffd23f);
+      // Ubåden ligger og vipper i vandkanten
+      const sub = drawSubmarineIcon(this, 190).setPosition(560, 350);
+      this.tweens.add({ targets: sub, y: 358, angle: 3, duration: 1400, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
+      drawPalm(this, 1010, 470, 1.1);
+      return;
+    }
+    this.add.rectangle(640, 200, 1280, 400, land.sky);
+    if (land.sun) this.add.circle(1050, 120, 55, 0xffd23f);
+    for (const [x, w, h] of [[150, 700, 160], [700, 800, 130], [1200, 650, 170]]) drawHill(this, x, 410, w, h, land.lookoutHill);
+    this.add.rectangle(640, 560, 1280, 320, land.ground);
+    this.add.rectangle(640, 425, 1280, 50, land.haze);
+    land.tree(this, 560, 425, 0.35);
+    land.tree(this, 1000, 440, 0.6);
+    land.tree(this, 1230, 450, 0.7);
+    if (land.weather === 'snow') addWeather(this, 'snow', { x: 0, y: -10, width: 1280, height: 730 }, 60).forEach((f) => f.setDepth(1));
+  }
+
   private finish() {
     this.tweens.add({ targets: this.cone, alpha: 0, duration: 300 });
     const face = this.add.text(CONE.x, 400, '😋', { fontSize: '160px', padding: { x: 10, y: 10 } }).setOrigin(0.5);
     popIn(this, face);
-    this.time.delayedCall(600, () => this.abdul.say(line(LINES.iceCreamDone)));
-    makeButton(this, CONE.x, 620, '🚙', 0x52b788, () => this.backToSafari()).setDepth(30);
+    const vehicle = LANDSCAPES[currentWorld(this)].vehicle;
+    this.time.delayedCall(600, () => this.abdul.say(line(vehicle.lines.iceCreamDone)));
+    makeButton(this, CONE.x, 620, vehicle.goIcon, 0x52b788, () => this.backToSafari()).setDepth(30);
   }
 
   private backToSafari() {

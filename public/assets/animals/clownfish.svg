@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="140" height="92" viewBox="0 0 140 92">
+<defs><clipPath id="clownfish-body"><ellipse cx="66" cy="48" rx="52" ry="30"/></clipPath></defs>
+<g stroke="#2b2118" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
+  <path d="M110 48 L136 24 Q130 48 136 72 Z" fill="#f77f00"/>
+  <path d="M44 22 Q66 0 96 20 Z" fill="#f77f00"/>
+  <path d="M60 76 Q70 92 86 74 Z" fill="#f77f00"/>
+  <ellipse cx="66" cy="48" rx="52" ry="30" fill="#f77f00"/>
+  <g clip-path="url(#clownfish-body)">
+    <path d="M34 10 Q28 48 34 86 L50 86 Q44 48 50 10 Z" fill="#fff"/>
+    <path d="M74 10 Q68 48 74 86 L90 86 Q84 48 90 10 Z" fill="#fff"/>
+    <path d="M106 10 Q102 48 106 86 L124 86 L124 10 Z" fill="#fff"/>
+  </g>
+  <ellipse cx="66" cy="48" rx="52" ry="30" fill="none"/>
+  <path d="M14 54 Q18 58 24 56" fill="none" stroke-width="2.5"/>
+  <circle cx="26" cy="42" r="5" fill="#fff"/>
+  <circle cx="25" cy="43" r="3" fill="#2b2118" stroke="none"/>
+</g>
+</svg>

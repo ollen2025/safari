@@ -12,6 +12,14 @@ export const LINES = {
     'Turen til {name} er ikke klar endnu. Vælg en anden tur!',
     'Uh, {name}! Det bliver spændende. Men ikke i dag!',
   ],
+  introAustralia: [
+    'Velkommen til Australien! Tryk på den røde knap, når du ser et dyr!',
+    'Her er varmt og rødt! Kig efter dyr på jorden og oppe i træerne!',
+  ],
+  introSea: [
+    'Velkommen ombord på ubåden! Tryk på den røde knap, når du ser et dyr!',
+    'Blub blub! Nu dykker vi ned i havet. Kig efter fisk og hvaler!',
+  ],
   introIce: [
     'Brr, hvor er her koldt! Tryk på den røde knap, når du ser et dyr!',
     'Velkommen til isen! Kig efter dyr i sneen og i vandet!',
@@ -40,6 +48,24 @@ export const LINES = {
   wake: ['Skal vi køre videre?', 'Godt kigget! Skal vi køre?', 'Sæt dig godt til rette!'],
   homeward: ['Så kører vi hen og får is!', 'Is! Hold fast, så kører vi!', 'Jeg glæder mig også til is!'],
   arriveKiosk: ['Der er iskiosken!', 'Vi er fremme! Nu er det is-tid!'],
+  // Under vandet sejler man i ubåd og svømmer ud for at kigge
+  brakeSea: ['Okay!', 'Jeg stopper!', 'Hov, så du noget?', 'Stop ubåden!'],
+  stoppedSeenSea: [
+    'Godt set! Svøm ud og kig!',
+    'Ja, der var et dyr! Tag dykkermasken på!',
+    'Flot! Lad os svømme ud og se!',
+    'Du har gode øjne! Svøm ud og se!',
+  ],
+  stoppedNothingSea: [
+    'Svøm ud og kig efter dyr!',
+    'Mon der er dyr her? Lad os svømme ud!',
+    'Måske gemmer der sig et dyr. Svøm ud og se!',
+  ],
+  driveSea: ['Så sejler vi!', 'Hold fast!', 'Videre på eventyr!', 'Blub blub!'],
+  wakeSea: ['Skal vi sejle videre?', 'Godt svømmet! Skal vi sejle?', 'Velkommen tilbage i ubåden!'],
+  homewardSea: ['Så sejler vi hen og får is!', 'Is! Hold fast, så sejler vi!', 'Jeg glæder mig også til is!'],
+  backToSafariSea: ['Så sejler vi igen!', 'Afsted! Nu skal vi finde flere havdyr!'],
+  iceCreamDoneSea: ['Mmm, den var god! Skal vi sejle videre?', 'Nam nam! Skal vi finde flere havdyr?'],
   lookoutStart: [
     'Kig rundt! Brug kikkerten til dyr langt væk.',
     'Hvad kan du se? Prøv kikkerten!',

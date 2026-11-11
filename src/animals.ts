@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 
 // Verdener med dyr, man kan køre rundt i. Startmenuens kort står i worlds.ts.
-export type WorldKey = 'safari' | 'jungle' | 'ice';
+export type WorldKey = 'safari' | 'jungle' | 'ice' | 'australia' | 'sea';
 
 export type AnimalKey =
   // Savannen
@@ -41,10 +41,33 @@ export type AnimalKey =
   | 'orca'
   | 'owl'
   | 'wolf'
-  | 'mammoth';
+  | 'mammoth'
+  // Australien
+  | 'kangaroo'
+  | 'koala'
+  | 'wombat'
+  | 'platypus'
+  | 'emu'
+  | 'kookaburra'
+  | 'tasdevil'
+  | 'dingo'
+  | 'cockatoo'
+  | 'echidna'
+  // Under vandet
+  | 'spermwhale'
+  | 'dolphin'
+  | 'shark'
+  | 'clownfish'
+  | 'manatee'
+  | 'octopus'
+  | 'seaturtle'
+  | 'seahorse'
+  | 'crab'
+  | 'jellyfish'
+  | 'eel';
 
 // Hvor dyret er: på jorden (standard), hængende under en gren, siddende oven på en gren (eller klippe),
-// eller svømmende (kun i vandet, fx spækhuggeren)
+// eller svømmende (kun i landskabets vand, fx spækhuggeren, eller i hulen under vandet, fx murænen)
 export type Pose = 'ground' | 'hang' | 'perch' | 'swim';
 
 export interface AnimalDef {
@@ -56,6 +79,7 @@ export interface AnimalDef {
   // Hvor i tegningen (0 = top, 1 = bund) grenen er, for dyr i træer. For dyr på jorden er det fødderne (1).
   anchorY?: number;
   scale?: number; // størrelse i forhold til de andre dyr (standard 1)
+  float?: number; // hvor højt over bunden dyret svømmer, målt i normale dyrestørrelser (standard 0)
 }
 
 export const ANIMALS: Record<AnimalKey, AnimalDef> = {
@@ -96,6 +120,29 @@ export const ANIMALS: Record<AnimalKey, AnimalDef> = {
   owl: { world: 'ice', name: 'en sneugle', plural: 'sneugler', pose: 'perch', scale: 0.65 },
   wolf: { world: 'ice', name: 'en ulv', plural: 'ulve', scale: 0.85 },
   mammoth: { world: 'ice', name: 'en mammut', plural: 'mammutter', scale: 1.15 }, // uddød, men en 4-årigs favorit
+
+  kangaroo: { world: 'australia', name: 'en kænguru', plural: 'kænguruer' },
+  koala: { world: 'australia', name: 'en koala', plural: 'koalaer', pose: 'perch', anchorY: 0.92, scale: 0.75 },
+  wombat: { world: 'australia', name: 'en wombat', plural: 'wombatter', scale: 0.7 },
+  platypus: { world: 'australia', name: 'et næbdyr', plural: 'næbdyr', pose: 'swim' },
+  emu: { world: 'australia', name: 'en emu', plural: 'emuer' },
+  kookaburra: { world: 'australia', name: 'en latterfugl', plural: 'latterfugle', pose: 'perch', anchorY: 0.86, scale: 0.65 },
+  tasdevil: { world: 'australia', name: 'en tasmansk djævel', plural: 'tasmanske djævle', scale: 0.6 },
+  dingo: { world: 'australia', name: 'en dingo', plural: 'dingoer', scale: 0.85 },
+  cockatoo: { world: 'australia', name: 'en kakadue', plural: 'kakaduer', pose: 'perch', anchorY: 0.79, scale: 0.7 },
+  echidna: { world: 'australia', name: 'et myrepindsvin', plural: 'myrepindsvin', scale: 0.55 },
+
+  spermwhale: { world: 'sea', name: 'en kaskelot', plural: 'kaskelotter', scale: 1.6, float: 0.9 },
+  dolphin: { world: 'sea', name: 'en delfin', plural: 'delfiner', scale: 1.1, float: 1.3 },
+  shark: { world: 'sea', name: 'en haj', plural: 'hajer', scale: 1.2, float: 1 },
+  clownfish: { world: 'sea', name: 'en klovnefisk', plural: 'klovnefisk', scale: 0.45, float: 0.8 },
+  manatee: { world: 'sea', name: 'en søko', plural: 'søkøer', scale: 1.1, float: 0.4 },
+  octopus: { world: 'sea', name: 'en blæksprutte', plural: 'blæksprutter', scale: 0.7 },
+  seaturtle: { world: 'sea', name: 'en havskildpadde', plural: 'havskildpadder', scale: 0.9, float: 0.9 },
+  seahorse: { world: 'sea', name: 'en søhest', plural: 'søheste', pose: 'perch', anchorY: 0.85, scale: 0.6 },
+  crab: { world: 'sea', name: 'en krabbe', plural: 'krabber', scale: 0.5 },
+  jellyfish: { world: 'sea', name: 'en vandmand', plural: 'vandmænd', scale: 0.6, float: 1.6 },
+  eel: { world: 'sea', name: 'en muræne', plural: 'muræner', pose: 'swim' }, // kigger op af hulen
 };
 
 export const ANIMAL_KEYS = Object.keys(ANIMALS) as AnimalKey[];

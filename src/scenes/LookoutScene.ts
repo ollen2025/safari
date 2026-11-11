@@ -193,7 +193,9 @@ export class LookoutScene extends Phaser.Scene {
     const hangs = pose === 'hang';
     // Små dyr (fugle, pingviner, ræve) tegnes mindre. Træet får dyrets normale størrelse.
     const animalSize = size * (ANIMALS[key].scale ?? 1);
-    const sprite = addAnimalImage(this, key, x, y, animalSize).setDepth(y).setFlipX(Math.random() < 0.5);
+    // Havdyr svømmer over bunden. Dybden (depth) følger stadig stedet på bunden under dem.
+    const lift = (ANIMALS[key].float ?? 0) * size;
+    const sprite = addAnimalImage(this, key, x, y - lift, animalSize).setDepth(y).setFlipX(Math.random() < 0.5);
 
     // Trykområdet er mindst hitSize stort og centreret på dyret. Det angives i billedets egne
     // (uskalerede) koordinater, derfor divideres med skalaen.
@@ -210,7 +212,7 @@ export class LookoutScene extends Phaser.Scene {
       useHandCursor: true,
     });
 
-    let baseY = y;
+    let baseY = y - lift;
     if (waterline !== undefined) {
       // Kun den øverste del stikker op af vandet
       sprite.setCrop(0, 0, sprite.width, sprite.height * waterline);
