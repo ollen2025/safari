@@ -54,7 +54,10 @@
 
       try {
         const data = await (await fetch('/assets/sounds/candidates/candidates.json')).json();
+        // ?animals=kangaroo,koala viser kun de dyr (fx de nyeste)
+        const only = new URLSearchParams(location.search).get('animals')?.split(',');
         for (const [animal, sounds] of Object.entries(data)) {
+          if (only && !only.includes(animal)) continue;
           const heading = document.createElement('h2');
           heading.textContent = NAMES[animal] ?? animal;
           list.append(heading);

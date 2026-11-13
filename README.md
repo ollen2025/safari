@@ -27,7 +27,7 @@ Et simpelt safari-spil til små børn (ca. 4 år). Gameplay og glæde kommer fø
 ## Lyde
 - Dyrelydene er CC0-optagelser fra freesound.org, se [CREDITS](public/assets/sounds/animals/CREDITS.md).
 - Abduls stemme er browserens oplæser. Microsoft Edge har den bedste danske stemme ("Jeppe Natural").
-- `/soundtest.html` (kun under `npm run dev`) afspiller kandidat-lydene, så man kan vælge de bedste.
+- `/soundtest.html` (kun under `npm run dev`) afspiller kandidat-lydene, så man kan vælge de bedste. Med fx `?animals=kangaroo,koala` vises kun de dyr.
 
 ## Kode-overblik
 | Fil | Indhold |
