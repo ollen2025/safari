@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 import { addAnimalImage, BABY_SCALE, variedSize } from '../animalArt';
 import { ANIMALS, currentWorld, poseOf, randomAnimal, type AnimalKey, type WorldKey } from '../animals';
 import { LANDSCAPES, type Landscape } from '../landscapes';
-import { BRANCH, drawHill } from '../scenery';
+import { BRANCH } from '../scenery';
 import { playAnimalSound } from '../sound';
 
 const WORLD_WIDTH = 3840;
@@ -121,7 +121,7 @@ export class LookoutScene extends Phaser.Scene {
     this.add.rectangle(WORLD_WIDTH / 2, HORIZON / 2, WORLD_WIDTH, HORIZON, land.sky).setDepth(-10);
     if (land.sun) this.add.circle(WORLD_WIDTH / 2 + 450, 130, 55, 0xffd23f).setDepth(-10);
     for (let x = 0; x < WORLD_WIDTH + 400; x += Between(350, 550)) {
-      drawHill(this, x, HORIZON + 10, Between(500, 800), Between(100, 180), land.lookoutHill).setDepth(-9);
+      land.farHill(this, x, HORIZON + 10, Between(500, 800), Between(100, 180), land.lookoutHill).setDepth(-9);
     }
     this.add.rectangle(WORLD_WIDTH / 2, (HORIZON + 720) / 2, WORLD_WIDTH, 720 - HORIZON, land.ground).setDepth(-8);
     // Lysere, diset bånd langt væk

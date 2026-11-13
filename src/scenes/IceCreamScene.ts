@@ -3,7 +3,7 @@ import { Abdul } from '../abdul';
 import { currentWorld } from '../animals';
 import { LANDSCAPES } from '../landscapes';
 import { line, LINES } from '../lines';
-import { addWeather, drawBeach, drawHill, drawKiosk, drawPalm } from '../scenery';
+import { addWeather, drawBeach, drawKiosk, drawPalm } from '../scenery';
 import { speak } from '../sound';
 import { drawSubmarineIcon, makeBigNumber, makeButton, popIn } from '../ui';
 
@@ -148,7 +148,7 @@ export class IceCreamScene extends Phaser.Scene {
     }
     this.add.rectangle(640, 200, 1280, 400, land.sky);
     if (land.sun) this.add.circle(1050, 120, 55, 0xffd23f);
-    for (const [x, w, h] of [[150, 700, 160], [700, 800, 130], [1200, 650, 170]]) drawHill(this, x, 410, w, h, land.lookoutHill);
+    for (const [x, w, h] of [[150, 700, 160], [700, 800, 130], [1200, 650, 170]]) land.farHill(this, x, 410, w, h, land.lookoutHill);
     this.add.rectangle(640, 560, 1280, 320, land.ground);
     this.add.rectangle(640, 425, 1280, 50, land.haze);
     land.tree(this, 560, 425, 0.35);

@@ -223,6 +223,65 @@ export function drawSeaCave(scene: Phaser.Scene, x: number, y: number, width: nu
   return g;
 }
 
+// Vulkan langt væk med glødende lava og røg. Tegnes som en bakke: (x, y) er midten af foden.
+export function drawVolcano(scene: Phaser.Scene, x: number, y: number, width: number, height: number) {
+  const g = scene.add.graphics({ x, y });
+  const top = -height * 0.9;
+  const rim = width * 0.08;
+  g.fillStyle(0x6d4c41).fillPoints(
+    [
+      { x: -width * 0.4, y: 0 },
+      { x: -rim, y: top },
+      { x: rim, y: top },
+      { x: width * 0.4, y: 0 },
+    ],
+    true,
+  );
+  g.fillStyle(0xe63946).fillTriangle(-rim, top, rim, top, rim * 0.2, top + height * 0.3);
+  g.fillStyle(0xf4a261).fillTriangle(-rim * 0.5, top, rim * 0.5, top, -rim * 0.4, top + height * 0.45);
+  g.fillStyle(0x9e9e9e, 0.8).fillCircle(0, top - 14, 14).fillCircle(16, top - 36, 18).fillCircle(2, top - 62, 22);
+  return g;
+}
+
+// Cykas med tyk, skællet stamme og store fjerblade, der hænger ud til siderne
+export function drawCycad(scene: Phaser.Scene, x: number, y: number, scale = 1) {
+  const g = scene.add.graphics({ x, y });
+  g.fillStyle(0x7a5c3a).fillRect(-14, -180, 28, 180).fillTriangle(-28, 0, 28, 0, 0, -34);
+  g.lineStyle(3, 0x5c4429);
+  for (let sy = -170; sy < -20; sy += 22) g.lineBetween(-14, sy, 0, sy + 10).lineBetween(0, sy + 10, 14, sy);
+  // Vinkel 0 er mod højre, -π/2 er lige op, og positive vinkler hælder nedad
+  const fronds: [number, number][] = [
+    [0.45, 0x386641],
+    [2.7, 0x386641],
+    [-0.25, 0x4f772d],
+    [-2.9, 0x4f772d],
+    [-0.9, 0x6a994e],
+    [-2.25, 0x6a994e],
+    [-1.57, 0x6a994e],
+  ];
+  g.save();
+  g.translateCanvas(0, -180);
+  for (const [angle, color] of fronds) {
+    g.rotateCanvas(angle);
+    g.fillStyle(color).fillEllipse(64, 0, 135, 26);
+    g.rotateCanvas(-angle);
+  }
+  g.restore();
+  return g.setScale(scale);
+}
+
+// Sump med mudret bred, grumset vand og siv
+export function drawSwamp(scene: Phaser.Scene, x: number, y: number, width: number, height: number) {
+  const g = scene.add.graphics({ x, y });
+  g.fillStyle(0x6b5a3a).fillEllipse(0, 0, width + 30, height + 16);
+  g.fillStyle(0x5b7f4a).fillEllipse(0, 0, width, height);
+  g.fillStyle(0x86a86a).fillEllipse(-width * 0.15, -height * 0.15, width * 0.45, height * 0.3);
+  g.lineStyle(2, 0xc6d49a, 0.8).strokeCircle(width * 0.25, height * 0.05, 5).strokeCircle(width * 0.3, -height * 0.12, 3);
+  g.lineStyle(3, 0x4f6b2a);
+  for (const dx of [-0.48, -0.44, 0.44, 0.48]) g.lineBetween(width * dx, height * 0.1, width * dx + 4, -height * 0.5);
+  return g;
+}
+
 // Palme på stranden
 export function drawPalm(scene: Phaser.Scene, x: number, y: number, scale = 1) {
   const g = scene.add.graphics({ x, y });

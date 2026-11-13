@@ -7,8 +7,10 @@ import {
   drawBillabong,
   drawBush,
   drawCoralTree,
+  drawCycad,
   drawEucalyptus,
   drawFern,
+  drawHill,
   drawIceHole,
   drawIceRock,
   drawJungleTree,
@@ -17,12 +19,15 @@ import {
   drawSeaweed,
   drawSnowDrift,
   drawSpinifex,
+  drawSwamp,
+  drawVolcano,
   drawWaterhole,
   type Weather,
 } from './scenery';
 
 type Draw = (scene: Phaser.Scene, x: number, y: number, scale?: number) => Phaser.GameObjects.Graphics;
 type DrawWater = (scene: Phaser.Scene, x: number, y: number, width: number, height: number) => Phaser.GameObjects.Graphics;
+type DrawHill = (scene: Phaser.Scene, x: number, y: number, width: number, height: number, color: number) => Phaser.GameObjects.Graphics;
 
 // Dyr der ligger i vandet, så kun den øverste del (waterline) stikker op
 export interface Swimmer {
@@ -86,6 +91,11 @@ const SUBMARINE: Vehicle = {
   },
 };
 
+// Nogle af bakkerne langt væk er vulkaner
+function drawHillOrVolcano(scene: Phaser.Scene, x: number, y: number, width: number, height: number, color: number) {
+  return Math.random() < 0.35 ? drawVolcano(scene, x, y, width, height) : drawHill(scene, x, y, width, height, color);
+}
+
 // Alt det, der gør en verden forskellig fra de andre: farver, træer, vand og Abduls velkomst
 export interface Landscape {
   sky: number;
@@ -94,6 +104,7 @@ export interface Landscape {
   vehicle: Vehicle;
   beach?: boolean; // iskiosken ligger oppe på en strand, og ubåden skal op til overfladen
   hill: number; // bakker langt væk, set fra bilen
+  farHill: DrawHill; // hvordan bakkerne langt væk tegnes
   lookoutHill: number; // bakker set stående
   ground: number;
   haze: number; // lyst bånd ved horisonten
@@ -113,6 +124,7 @@ export const LANDSCAPES: Record<WorldKey, Landscape> = {
     sun: true,
     vehicle: JEEP,
     hill: 0xa3b18a,
+    farHill: drawHill,
     lookoutHill: 0xb5c99a,
     ground: 0xe9c46a,
     haze: 0xf0d58c,
@@ -133,6 +145,7 @@ export const LANDSCAPES: Record<WorldKey, Landscape> = {
     sun: false,
     vehicle: JEEP,
     hill: 0x2d6a4f,
+    farHill: drawHill,
     lookoutHill: 0x40916c,
     ground: 0x7c9a54,
     haze: 0x95b98a,
@@ -151,6 +164,7 @@ export const LANDSCAPES: Record<WorldKey, Landscape> = {
     weather: 'snow',
     vehicle: JEEP,
     hill: 0xe3f2fa,
+    farHill: drawHill,
     lookoutHill: 0xeef7fb,
     ground: 0xf5fbfd,
     haze: 0xe0f1f8,
@@ -171,6 +185,7 @@ export const LANDSCAPES: Record<WorldKey, Landscape> = {
     sun: true,
     vehicle: JEEP,
     hill: 0xb5532c, // røde klipper langt væk
+    farHill: drawHill,
     lookoutHill: 0xc8693f,
     ground: 0xd9824a, // rødt sand
     haze: 0xe8a66c,
@@ -191,6 +206,7 @@ export const LANDSCAPES: Record<WorldKey, Landscape> = {
     vehicle: SUBMARINE,
     beach: true,
     hill: 0x2a6f97, // rev langt væk
+    farHill: drawHill,
     lookoutHill: 0x3d85b0,
     ground: 0xe6d3a3,
     haze: 0xa9c9c4,
@@ -202,5 +218,24 @@ export const LANDSCAPES: Record<WorldKey, Landscape> = {
     swimmers: [{ key: 'eel', dx: 0, dy: 10, size: 120, waterline: 0.55, chance: 1 }],
     drinkers: ['crab', 'octopus', 'seaturtle'],
     intro: LINES.introSea,
+  },
+  // Dinosaurernes land: varm, diset himmel, vulkaner og en sump, hvor spinosaurus vader
+  dino: {
+    sky: 0xffd6a5,
+    sun: true,
+    vehicle: JEEP,
+    hill: 0x7f8f5a,
+    farHill: drawHillOrVolcano,
+    lookoutHill: 0x8fa066,
+    ground: 0x8fb35a,
+    haze: 0xc6d49a,
+    tree: drawCycad,
+    bush: drawFern,
+    water: drawSwamp,
+    driveTrees: 5,
+    lookoutTrees: 16,
+    swimmers: [{ key: 'spinosaurus', dx: -40, dy: 14, size: 120, waterline: 0.5, chance: 0.8 }],
+    drinkers: ['triceratops', 'stegosaurus', 'brachiosaurus', 'parasaurolophus', 'ankylosaurus'],
+    intro: LINES.introDino,
   },
 };

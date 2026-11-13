@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 
 // Verdener med dyr, man kan køre rundt i. Startmenuens kort står i worlds.ts.
-export type WorldKey = 'safari' | 'jungle' | 'ice' | 'australia' | 'sea';
+export type WorldKey = 'safari' | 'jungle' | 'ice' | 'australia' | 'sea' | 'dino';
 
 export type AnimalKey =
   // Savannen
@@ -64,7 +64,20 @@ export type AnimalKey =
   | 'seahorse'
   | 'crab'
   | 'jellyfish'
-  | 'eel';
+  | 'eel'
+  // Dinosaurer
+  | 'giganotosaurus'
+  | 'tyrannosaurus'
+  | 'spinosaurus'
+  | 'triceratops'
+  | 'stegosaurus'
+  | 'brachiosaurus'
+  | 'ankylosaurus'
+  | 'parasaurolophus'
+  | 'pachycephalosaurus'
+  | 'troodon'
+  | 'pteranodon'
+  | 'quetzalcoatlus';
 
 // Hvor dyret er: på jorden (standard), hængende under en gren, siddende oven på en gren (eller klippe),
 // eller svømmende (kun i landskabets vand, fx spækhuggeren, eller i hulen under vandet, fx murænen)
@@ -79,7 +92,7 @@ export interface AnimalDef {
   // Hvor i tegningen (0 = top, 1 = bund) grenen er, for dyr i træer. For dyr på jorden er det fødderne (1).
   anchorY?: number;
   scale?: number; // størrelse i forhold til de andre dyr (standard 1)
-  float?: number; // hvor højt over bunden dyret svømmer, målt i normale dyrestørrelser (standard 0)
+  float?: number; // hvor højt over bunden dyret svømmer eller flyver, målt i normale dyrestørrelser (standard 0)
 }
 
 export const ANIMALS: Record<AnimalKey, AnimalDef> = {
@@ -143,6 +156,21 @@ export const ANIMALS: Record<AnimalKey, AnimalDef> = {
   crab: { world: 'sea', name: 'en krabbe', plural: 'krabber', scale: 0.5 },
   jellyfish: { world: 'sea', name: 'en vandmand', plural: 'vandmænd', scale: 0.6, float: 1.6 },
   eel: { world: 'sea', name: 'en muræne', plural: 'muræner', pose: 'swim' }, // kigger op af hulen
+
+  // "Gigantosaurus" som i tegnefilmen; den rigtige hedder giganotosaurus
+  giganotosaurus: { world: 'dino', name: 'en gigantosaurus', plural: 'gigantosaurusser', scale: 1.45 },
+  tyrannosaurus: { world: 'dino', name: 'en T-rex', plural: 'T-rexer', scale: 1.35 },
+  spinosaurus: { world: 'dino', name: 'en spinosaurus', plural: 'spinosaurusser', scale: 1.45 },
+  triceratops: { world: 'dino', name: 'en triceratops', plural: 'triceratopser', scale: 1.1 },
+  stegosaurus: { world: 'dino', name: 'en stegosaurus', plural: 'stegosaurusser', scale: 1.1 },
+  brachiosaurus: { world: 'dino', name: 'en brachiosaurus', plural: 'brachiosaurusser', scale: 1.6 },
+  ankylosaurus: { world: 'dino', name: 'en ankylosaurus', plural: 'ankylosaurusser' },
+  parasaurolophus: { world: 'dino', name: 'en parasaurolophus', plural: 'parasaurolophusser', scale: 1.1 },
+  pachycephalosaurus: { world: 'dino', name: 'en pachycephalosaurus', plural: 'pachycephalosaurusser', scale: 0.8 },
+  troodon: { world: 'dino', name: 'en troodon', plural: 'troodonner', scale: 0.55 },
+  // Flyveøglerne flyver højt oppe på himlen
+  pteranodon: { world: 'dino', name: 'en pteranodon', plural: 'pteranodonner', scale: 0.9, float: 2.2 },
+  quetzalcoatlus: { world: 'dino', name: 'en quetzalcoatlus', plural: 'quetzalcoatlusser', float: 1.8 },
 };
 
 export const ANIMAL_KEYS = Object.keys(ANIMALS) as AnimalKey[];

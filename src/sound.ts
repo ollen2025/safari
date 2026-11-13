@@ -7,9 +7,18 @@ const MAX_SECONDS: Partial<Record<AnimalKey, number>> = {
   lion: 2,
   baboon: 2,
 };
-// Lydstyrke pr. dyr (0 til 1), til optagelser der er meget højere end de andre
+// Lydstyrke pr. dyr, til optagelser der er meget højere (under 1) eller svagere (over 1) end de andre.
+// Over 1 virker kun med Web Audio; Phasers HTML5-lyd stopper selv ved 1.
 const VOLUME: Partial<Record<AnimalKey, number>> = {
   baboon: 0.5,
+  giganotosaurus: 0.6,
+  pachycephalosaurus: 0.6,
+  triceratops: 3,
+  troodon: 2.5,
+};
+// Sekunder der springes over i starten, til optagelser der begynder med stilhed
+const START_SECONDS: Partial<Record<AnimalKey, number>> = {
+  pteranodon: 1.4,
 };
 const FADE_MS = 400;
 const FADE_STEPS = 10;
@@ -49,7 +58,7 @@ export function playAnimalSound(scene: Phaser.Scene, key: AnimalKey) {
     if (playing === entry) stopAnimalSound();
   });
   const volume = VOLUME[key] ?? 1;
-  entry.sound.play({ volume });
+  entry.sound.play({ volume, seek: START_SECONDS[key] ?? 0 });
 
   // Fader ud, så lyden er slut efter højst maxSeconds
   const maxSeconds = MAX_SECONDS[key] ?? DEFAULT_MAX_SECONDS;

@@ -110,6 +110,7 @@ export const WORLDS: WorldDef[] = [
     title: 'Dinosaurer',
     spokenName: 'dinosaurerne',
     emoji: '🦖',
+    play: 'dino',
     paint: (g, p) => {
       top(g, p, p.h * 0.65, 0xffd6a5);
       bottom(g, p, p.h * 0.35, 0x6a994e);

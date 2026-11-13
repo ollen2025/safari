@@ -4,7 +4,7 @@ import { addAnimalImage, BABY_SCALE, variedSize } from '../animalArt';
 import { ANIMALS, currentWorld, poseOf, randomAnimal, type AnimalKey, type WorldKey } from '../animals';
 import { LANDSCAPES, type Landscape } from '../landscapes';
 import { line, LINES } from '../lines';
-import { addWeather, BRANCH, drawBeach, drawHill, drawKiosk, drawPalm } from '../scenery';
+import { addWeather, BRANCH, drawBeach, drawKiosk, drawPalm } from '../scenery';
 import { CollectionBar, drawIceCreamIcon, makeButton } from '../ui';
 
 const CRUISE_SPEED = 200; // px/s for det nærmeste lag
@@ -369,7 +369,7 @@ export class DriveScene extends Phaser.Scene {
 
     const { Between, FloatBetween } = Phaser.Math;
     this.addLayer(hills, 5, 2100, 0.15, (x) =>
-      drawHill(this, x, HORIZON + 10, Between(500, 800), Between(120, 200), land.hill),
+      land.farHill(this, x, HORIZON + 10, Between(500, 800), Between(120, 200), land.hill),
     );
     this.addLayer(trees, land.driveTrees, 2400, 0.4, (x) => land.tree(this, x, HORIZON + 40, FloatBetween(0.8, 1.1)));
     this.addLayer(water, 1, 2600, 0.6, (x) => land.water(this, x + 1000, 440, 360, 60));
