@@ -1,4 +1,4 @@
-# Dyrelyde
+| squirrel | [squirrelly](https://freesound.org/people/dollarstoredingus/sounds/795975/) | dollarstoredingus || hedgehog | [Hedgehog smell and run.mp3](https://freesound.org/people/ffdown/sounds/570301/) | ffdown || goat | [Goat Sound 2.wav](https://freesound.org/people/Erokia/sounds/188182/) | Erokia |# Dyrelyde
 
 Alle lyde er fra [freesound.org](https://freesound.org) med licensen **Creative Commons 0** (public domain). Kreditering er ikke påkrævet, men vi nævner dem gerne.
 
