@@ -3,7 +3,7 @@
 Et simpelt safari-spil til små børn (ca. 4 år). Gameplay og glæde kommer før grafik.
 
 ## Spillet
-- Spillet starter i en **startmenu**: postkort, der hænger på en snor i solnedgangen. Man vælger, hvor turen går hen. **Safari**, **jungle**, **isen**, **Australien**, **under vandet** og **dinosaurer** er klar. På tastatur vælges kortene med **1** til **6**. 🏠 i safarien fører tilbage til menuen.
+- Spillet starter i en **startmenu**: postkort, der hænger på en snor i solnedgangen. Man vælger, hvor turen går hen. **Safari**, **jungle**, **isen**, **Australien**, **under vandet**, **dinosaurer** og **Europa** er klar. På tastatur vælges kortene med **1** til **7**. 🏠 i safarien fører tilbage til menuen.
 - Spilleren sidder i en jeep og kigger ud ad vinduet, mens savannen kører forbi.
 - Chaufføren hedder **Abdul**. Han snakker (browserens oplæser) og viser en taleboble.
 - Ser man et dyr, trykker man på den røde ✋-knap (eller direkte på dyret), og Abdul stopper.
@@ -18,6 +18,7 @@ Et simpelt safari-spil til små børn (ca. 4 år). Gameplay og glæde kommer fø
 - Dyr i Australien: kænguru, koala, wombat, næbdyr, emu, latterfugl, tasmansk djævel, dingo, kakadue og myrepindsvin. Jorden er rødt sand, koalaer og fugle sidder i eukalyptustræerne, og næbdyret svømmer i vandhullerne (billabongs).
 - Under vandet sidder man i en **gul ubåd**: kaskelot, delfin, haj, klovnefisk, søko, blæksprutte, havskildpadde, søhest, krabbe, vandmand og muræne. Fiskene svømmer over bunden, der stiger bobler op, søhesten holder fast i koraltræerne, og murænen kigger op af en hule i klippen.
 - Dinosaurer: gigantosaurus, T-rex, spinosaurus, triceratops, stegosaurus, brachiosaurus, ankylosaurus, parasaurolophus, pachycephalosaurus og troodon, plus flyveøglerne pteranodon og quetzalcoatlus, der flyver på himlen. Der er vulkaner i baggrunden, cykas-træer, og spinosaurus vader i sumpen.
+- Dyr i Europa: kronhjort, ørn, får, ko, ged, hest, gris, vildsvin, ræv, grævling, pindsvin, egern, brunbjørn, stork og svane. Der er grønne marker med blomsterbuske, egetræer med egern på grenen, snedækkede bjerge langt væk, ørnen svæver på himlen, og svanerne svømmer i søen.
 - Når bilen holder, kan man køre hen til **iskiosken** 🍦: Tryk kugler på isen (Abdul tæller op til 5), og spis den bagefter. Kiosken står i verdenens eget landskab. Under vandet stiger ubåden op til overfladen, og kiosken ligger på en strand med palmer.
 - Knapperne til jeep, ubåd og is er tegnet (`drawJeepIcon`, `drawSubmarineIcon`, `drawIceCreamIcon` i `src/ui.ts`), resten er emojis.
 - Abdul har flere sætninger til hver situation (`src/lines.ts`), så han ikke siger det samme hele tiden.

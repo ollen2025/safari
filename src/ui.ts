@@ -125,7 +125,9 @@ export class CollectionBar {
 
   constructor(private readonly scene: Phaser.Scene, x: number, y: number, world: WorldKey) {
     const keys = animalsIn(world);
-    const spacing = 70;
+    // Bjælken må højst være 950 px bred, så den ikke når ind under knapperne i hjørnerne.
+    // Har verdenen mange dyr, rykker de lidt tættere sammen.
+    const spacing = Math.min(70, (950 - 20) / keys.length);
     const width = keys.length * spacing + 20;
     const startX = x - ((keys.length - 1) * spacing) / 2;
 

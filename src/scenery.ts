@@ -45,7 +45,7 @@ export function drawKiosk(scene: Phaser.Scene, x: number, y: number) {
 }
 
 // Punktet på grenen (i forhold til træets fod ved scale 1), hvor dyr hænger eller sidder.
-// Både akacietræet og junglens træ har en gren her.
+// Akacietræet, junglens træ, eukalyptus og egetræet har alle en gren her.
 export const BRANCH = { x: 45, y: -118 };
 
 // Højt jungletræ med en vandret gren til dovendyr, slanger og fugle, og lianer der hænger ned
@@ -280,6 +280,53 @@ export function drawSwamp(scene: Phaser.Scene, x: number, y: number, width: numb
   g.lineStyle(3, 0x4f6b2a);
   for (const dx of [-0.48, -0.44, 0.44, 0.48]) g.lineBetween(width * dx, height * 0.1, width * dx + 4, -height * 0.5);
   return g;
+}
+
+// Bjerg langt væk med sne på toppen. Tegnes som en bakke: (x, y) er midten af foden.
+export function drawMountain(scene: Phaser.Scene, x: number, y: number, width: number, height: number) {
+  const g = scene.add.graphics({ x, y });
+  const top = -height * 1.3;
+  g.fillStyle(0x8d99ae).fillTriangle(-width * 0.4, 0, 0, top, width * 0.4, 0);
+  g.fillStyle(0x7d8799).fillTriangle(0, top, width * 0.4, 0, width * 0.1, 0);
+  // Sneen følger bjergets sider ned til en takket kant
+  const snowY = top * 0.62;
+  const edge = (width * 0.4 * (top - snowY)) / top;
+  g.fillStyle(0xffffff).fillPoints(
+    [
+      { x: 0, y: top },
+      { x: edge, y: snowY },
+      { x: edge * 0.4, y: snowY + 14 },
+      { x: 0, y: snowY - 4 },
+      { x: -edge * 0.4, y: snowY + 14 },
+      { x: -edge, y: snowY },
+    ],
+    true,
+  );
+  return g;
+}
+
+// Egetræ med rund krone og en vandret gren (ved BRANCH) til egern
+export function drawOak(scene: Phaser.Scene, x: number, y: number, scale = 1) {
+  const g = scene.add.graphics({ x, y });
+  g.fillStyle(0x6b4a2f).fillRect(-13, -200, 26, 200);
+  g.fillStyle(0x6b4a2f).fillTriangle(-26, 0, 26, 0, 0, -34);
+  g.lineStyle(12, 0x6b4a2f).lineBetween(0, -108, 88, -128).lineBetween(0, -160, -55, -195);
+  g.fillStyle(0x4f772d).fillEllipse(94, -136, 50, 26);
+  g.fillStyle(0x386641).fillEllipse(-55, -215, 120, 90).fillEllipse(55, -220, 130, 95);
+  g.fillStyle(0x4f772d).fillEllipse(0, -255, 170, 110).fillEllipse(-75, -240, 80, 60).fillEllipse(78, -245, 90, 66);
+  g.fillStyle(0x6a994e).fillEllipse(-25, -280, 90, 46).fillEllipse(40, -262, 70, 38);
+  return g.setScale(scale);
+}
+
+// Grøn busk med små røde og hvide blomster
+export function drawFlowerBush(scene: Phaser.Scene, x: number, y: number, scale = 1) {
+  const g = drawBush(scene, x, y, 1);
+  g.fillStyle(0x4f772d).fillEllipse(30, -30, 70, 30);
+  for (const [fx, fy, color] of [[-60, -10, 0xe63946], [-20, -25, 0xffffff], [20, -40, 0xe63946], [60, -20, 0xffffff], [95, -5, 0xe63946], [-35, 10, 0xffffff]]) {
+    g.fillStyle(color).fillCircle(fx, fy, 7);
+    g.fillStyle(0xffd23f).fillCircle(fx, fy, 2.5);
+  }
+  return g.setScale(scale);
 }
 
 // Palme på stranden

@@ -20,6 +20,10 @@ export const LINES = {
     'Velkommen til dinosaurernes land! Tryk på den røde knap, når du ser en dinosaur!',
     'Wow, se vulkanerne! Kig efter dinosaurer på jorden og oppe i luften!',
   ],
+  introEurope: [
+    'Velkommen til Europa! Tryk på den røde knap, når du ser et dyr!',
+    'Se de grønne marker og bjergene! Kig efter dyr i skoven, på marken og oppe i luften!',
+  ],
   introSea: [
     'Velkommen ombord på ubåden! Tryk på den røde knap, når du ser et dyr!',
     'Blub blub! Nu dykker vi ned i havet. Kig efter fisk og hvaler!',

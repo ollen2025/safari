@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 
 // Verdener med dyr, man kan køre rundt i. Startmenuens kort står i worlds.ts.
-export type WorldKey = 'safari' | 'jungle' | 'ice' | 'australia' | 'sea' | 'dino';
+export type WorldKey = 'safari' | 'jungle' | 'ice' | 'australia' | 'sea' | 'dino' | 'europe';
 
 export type AnimalKey =
   // Savannen
@@ -77,7 +77,23 @@ export type AnimalKey =
   | 'pachycephalosaurus'
   | 'troodon'
   | 'pteranodon'
-  | 'quetzalcoatlus';
+  | 'quetzalcoatlus'
+  // Europa
+  | 'reddeer'
+  | 'eagle'
+  | 'sheep'
+  | 'cow'
+  | 'goat'
+  | 'horse'
+  | 'pig'
+  | 'boar'
+  | 'fox'
+  | 'badger'
+  | 'hedgehog'
+  | 'squirrel'
+  | 'brownbear'
+  | 'stork'
+  | 'swan';
 
 // Hvor dyret er: på jorden (standard), hængende under en gren, siddende oven på en gren (eller klippe),
 // eller svømmende (kun i landskabets vand, fx spækhuggeren, eller i hulen under vandet, fx murænen)
@@ -171,6 +187,22 @@ export const ANIMALS: Record<AnimalKey, AnimalDef> = {
   // Flyveøglerne flyver højt oppe på himlen
   pteranodon: { world: 'dino', name: 'en pteranodon', plural: 'pteranodonner', scale: 0.9, float: 2.2 },
   quetzalcoatlus: { world: 'dino', name: 'en quetzalcoatlus', plural: 'quetzalcoatlusser', float: 1.8 },
+
+  reddeer: { world: 'europe', name: 'en kronhjort', plural: 'kronhjorte', scale: 1.15 },
+  eagle: { world: 'europe', name: 'en ørn', plural: 'ørne', scale: 0.9, float: 2 }, // svæver på himlen
+  sheep: { world: 'europe', name: 'et får', plural: 'får', scale: 0.75 },
+  cow: { world: 'europe', name: 'en ko', plural: 'køer', scale: 1.1 },
+  goat: { world: 'europe', name: 'en ged', plural: 'geder', scale: 0.75 },
+  horse: { world: 'europe', name: 'en hest', plural: 'heste', scale: 1.15 },
+  pig: { world: 'europe', name: 'en gris', plural: 'grise', scale: 0.7 },
+  boar: { world: 'europe', name: 'et vildsvin', plural: 'vildsvin', scale: 0.8 },
+  fox: { world: 'europe', name: 'en ræv', plural: 'ræve', scale: 0.65 },
+  badger: { world: 'europe', name: 'en grævling', plural: 'grævlinger', scale: 0.6 },
+  hedgehog: { world: 'europe', name: 'et pindsvin', plural: 'pindsvin', scale: 0.4 },
+  squirrel: { world: 'europe', name: 'et egern', plural: 'egern', pose: 'perch', anchorY: 0.95, scale: 0.6 },
+  brownbear: { world: 'europe', name: 'en brunbjørn', plural: 'brunbjørne', scale: 1.1 },
+  stork: { world: 'europe', name: 'en stork', plural: 'storke', scale: 0.85 },
+  swan: { world: 'europe', name: 'en svane', plural: 'svaner', pose: 'swim' }, // svømmer i søen
 };
 
 export const ANIMAL_KEYS = Object.keys(ANIMALS) as AnimalKey[];

@@ -13,7 +13,10 @@ import {
   drawHill,
   drawIceHole,
   drawIceRock,
+  drawFlowerBush,
   drawJungleTree,
+  drawMountain,
+  drawOak,
   drawPond,
   drawSeaCave,
   drawSeaweed,
@@ -94,6 +97,11 @@ const SUBMARINE: Vehicle = {
 // Nogle af bakkerne langt væk er vulkaner
 function drawHillOrVolcano(scene: Phaser.Scene, x: number, y: number, width: number, height: number, color: number) {
   return Math.random() < 0.35 ? drawVolcano(scene, x, y, width, height) : drawHill(scene, x, y, width, height, color);
+}
+
+// Nogle af bakkerne langt væk er høje bjerge med sne på toppen (Alperne)
+function drawHillOrMountain(scene: Phaser.Scene, x: number, y: number, width: number, height: number, color: number) {
+  return Math.random() < 0.4 ? drawMountain(scene, x, y, width, height) : drawHill(scene, x, y, width, height, color);
 }
 
 // Alt det, der gør en verden forskellig fra de andre: farver, træer, vand og Abduls velkomst
@@ -237,5 +245,27 @@ export const LANDSCAPES: Record<WorldKey, Landscape> = {
     swimmers: [{ key: 'spinosaurus', dx: -40, dy: 14, size: 120, waterline: 0.5, chance: 0.8 }],
     drinkers: ['triceratops', 'stegosaurus', 'brachiosaurus', 'parasaurolophus', 'ankylosaurus'],
     intro: LINES.introDino,
+  },
+  // Europa: grønne marker, egetræer med egern, snedækkede bjerge og en sø med svaner
+  europe: {
+    sky: 0x9fd8f5,
+    sun: true,
+    vehicle: JEEP,
+    hill: 0x6a994e,
+    farHill: drawHillOrMountain,
+    lookoutHill: 0x7fb069,
+    ground: 0x9cc96b,
+    haze: 0xc5e0a5,
+    tree: drawOak,
+    bush: drawFlowerBush,
+    water: drawPond,
+    driveTrees: 5,
+    lookoutTrees: 16,
+    swimmers: [
+      { key: 'swan', dx: -60, dy: 10, size: 100, waterline: 0.62, chance: 1 },
+      { key: 'swan', dx: 70, dy: 16, size: 90, waterline: 0.62, chance: 0.5 },
+    ],
+    drinkers: ['cow', 'horse', 'reddeer', 'sheep', 'goat', 'stork'],
+    intro: LINES.introEurope,
   },
 };

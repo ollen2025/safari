@@ -72,3 +72,18 @@ Alle lyde er fra [freesound.org](https://freesound.org) med licensen **Creative 
 | troodon | [Small Dino Raspy Calls](https://freesound.org/people/CaveboyTup/sounds/529463/) | CaveboyTup |
 | pteranodon | [Angry Horror Movie Phlegmy Pterodactyl Bird 24bit stereo.wav](https://freesound.org/people/psychetorics/sounds/579674/) | psychetorics |
 | quetzalcoatlus | [tearadictile.mp3](https://freesound.org/people/HialeyTrimnal/sounds/410997/) | HialeyTrimnal |
+| reddeer | [Deer rut - Brame Cerf 02.wav](https://freesound.org/people/L.Finck/sounds/653533/) | L.Finck |
+| eagle | [Eagle.wav](https://freesound.org/people/Johnnie_Holiday/sounds/583615/) | Johnnie_Holiday |
+| sheep | [Sheep bleating](https://freesound.org/people/zachrau/sounds/362283/) | zachrau |
+| cow | [Cow moos](https://freesound.org/people/JosephSardin/sounds/177253/) | JosephSardin |
+| goat | [goat.aif](https://freesound.org/people/beskhu/sounds/273911/) | beskhu |
+| horse | [horse neigh shortened.wav](https://freesound.org/people/shadoWisp/sounds/269571/) | shadoWisp |
+| pig | [Pig Oink](https://freesound.org/people/qubodup/sounds/442906/) | qubodup |
+| boar | [Swine - Pig; Dinosaur-like Grunt](https://freesound.org/people/TheKingOfGeeks360/sounds/842313/) | TheKingOfGeeks360 |
+| fox | [red fox screeching.mp3](https://freesound.org/people/craigsays/sounds/537587/) | craigsays |
+| badger | [badger eating peanuts](https://freesound.org/people/TEDAgame/sounds/527390/) | TEDAgame |
+| hedgehog | [Angry hedgehog sniffing 1](https://freesound.org/people/fthgurdy/sounds/528183/) | fthgurdy |
+| squirrel | [squirrel chatter w city.wav](https://freesound.org/people/Littlebrojay/sounds/195440/) | Littlebrojay |
+| brownbear | [Angry Beast.wav](https://freesound.org/people/husky70/sounds/170454/) | husky70 |
+| stork | [Storks bill-clapping](https://freesound.org/people/Breviceps/sounds/705861/) | Breviceps |
+| swan | [Waterfowl - Mute Swan; Three Grunts, Medium to Distant Perspective](https://freesound.org/people/TheKingOfGeeks360/sounds/846652/) | TheKingOfGeeks360 |

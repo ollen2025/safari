@@ -6,8 +6,10 @@ import { WORLDS, type Rect, type WorldDef } from '../worlds';
 
 // Kortene hænger som postkort på en snor hen over himlen
 const ROPE = { y: 70, sag: 120 }; // snoren hænger ned til y + sag/2 på midten
-const CARD_SPACING = 210;
 const FRAME = { w: 186, h: 230 };
+// Er der for mange kort til at være på skærmen i fuld størrelse, bliver de alle lidt mindre
+const CARD_SCALE = Math.min(1, 1240 / ((WORLDS.length - 1) * 210 + FRAME.w));
+const CARD_SPACING = 210 * CARD_SCALE;
 const PAINTING: Rect = { l: -83, t: 18, w: 166, h: 170 }; // i forhold til klemmen øverst på kortet
 const HORIZON = 560;
 const SILHOUETTE = 0x4a2511;
@@ -143,7 +145,7 @@ export class MenuScene extends Phaser.Scene {
     // Usynlig trykflade over hele kortet. Som barn af containeren svajer og skalerer den med.
     const hit = this.add.zone(0, FRAME.h / 2, FRAME.w, FRAME.h + 20).setInteractive({ useHandCursor: true });
     parts.push(hit);
-    const card = this.add.container(x, this.ropeY(x), parts).setData('baseX', x);
+    const card = this.add.container(x, this.ropeY(x), parts).setScale(CARD_SCALE).setData('baseX', x);
     hit.on('pointerdown', () => this.choose(world, card));
 
     // Kortene svajer lidt på snoren, hver i sin egen takt
@@ -158,7 +160,7 @@ export class MenuScene extends Phaser.Scene {
       repeat: -1,
     });
     if (ready) {
-      this.tweens.add({ targets: card, scale: 1.06, duration: 900, ease: 'Sine.easeInOut', yoyo: true, repeat: -1 });
+      this.tweens.add({ targets: card, scale: CARD_SCALE * 1.06, duration: 900, ease: 'Sine.easeInOut', yoyo: true, repeat: -1 });
     }
 
     this.addKeyBadge(card, String(index + 1));
@@ -203,7 +205,7 @@ export class MenuScene extends Phaser.Scene {
     }
     this.registry.set('world', world.play);
     this.leaving = true;
-    this.tweens.add({ targets: card, scale: 1.25, duration: 300, ease: 'Back.easeOut' });
+    this.tweens.add({ targets: card, scale: CARD_SCALE * 1.25, duration: 300, ease: 'Back.easeOut' });
     this.cameras.main.fadeOut(600, 0, 0, 0);
     this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => this.scene.start('Drive'));
   }

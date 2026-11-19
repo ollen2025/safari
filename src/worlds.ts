@@ -122,4 +122,28 @@ export const WORLDS: WorldDef[] = [
       g.fillStyle(0x386641).fillEllipse(p.l + 25, base + 4, 70, 30);
     },
   },
+  {
+    key: 'europe',
+    title: 'Europa',
+    spokenName: 'Europa',
+    emoji: '🦌',
+    play: 'europe',
+    paint: (g, p) => {
+      top(g, p, p.h * 0.6, 0x9fd8f5);
+      bottom(g, p, p.h * 0.4, 0x9cc96b);
+      const base = p.t + p.h * 0.6;
+      // Bjerg med sne på toppen, grøn bakke og et lille rødt hus med Dannebrog
+      g.fillStyle(0x8d99ae).fillTriangle(p.l + 70, base, p.l + 125, p.t + 30, p.l + 180, base);
+      g.fillStyle(0xffffff).fillTriangle(p.l + 111, p.t + 47, p.l + 125, p.t + 30, p.l + 139, p.t + 47);
+      g.fillStyle(0x6a994e).fillEllipse(p.l + 40, base + 4, 120, 40);
+      const hx = p.l + 22;
+      const hy = base - 2;
+      g.fillStyle(0xb5332e).fillRect(hx, hy - 18, 26, 18);
+      g.fillStyle(0x5c3d2e).fillTriangle(hx - 4, hy - 18, hx + 13, hy - 32, hx + 30, hy - 18);
+      g.fillStyle(0xffffff).fillRect(hx + 10, hy - 10, 6, 10);
+      g.lineStyle(2, 0x5c3d2e).lineBetween(hx + 40, hy, hx + 40, hy - 40);
+      g.fillStyle(0xc8102e).fillRect(hx + 41, hy - 40, 18, 12);
+      g.fillStyle(0xffffff).fillRect(hx + 46, hy - 40, 3, 12).fillRect(hx + 41, hy - 35, 18, 3);
+    },
+  },
 ];
